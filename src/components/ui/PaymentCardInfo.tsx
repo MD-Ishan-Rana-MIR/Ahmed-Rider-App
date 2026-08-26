@@ -1,5 +1,4 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React from "react";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
@@ -40,7 +39,7 @@ export const PaymentCardForm: React.FC<PaymentCardFormProps> = ({
   };
 
   const handleNavigate = () => {
-    router.push("/(auth)/profile-picture-upload");
+    // router.push("/(auth)/profile-picture-upload");
   };
 
   return (
