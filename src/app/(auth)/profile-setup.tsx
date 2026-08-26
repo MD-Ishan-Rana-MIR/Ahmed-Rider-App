@@ -34,8 +34,6 @@ export default function ProfileSetUp() {
 
   const { page_name } = useLocalSearchParams<{ page_name?: string }>();
 
-  console.log("page_name", page_name);
-
   const handleNavigate = () => {
     if (page_name === "profile_setup") {
       return router.push("/(auth)/vehicle-info?page_name===vechileinfo");

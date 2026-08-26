@@ -1,18 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Control,
-    Controller,
-    FieldErrors,
-    RegisterOptions,
+  Control,
+  Controller,
+  FieldErrors,
+  RegisterOptions,
 } from "react-hook-form";
 import {
-    FlatList,
-    Modal,
-    Pressable,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import tw from "twrnc";
 
@@ -48,8 +48,8 @@ export const FormGenderSelect: React.FC<FormGenderDropdownProps> = ({
   rules,
   containerStyle = "",
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
   const errorMessage = errors[name]?.message as string | undefined;
+  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
 
   return (
     <View style={tw`${containerStyle}`}>
@@ -68,12 +68,12 @@ export const FormGenderSelect: React.FC<FormGenderDropdownProps> = ({
 
           return (
             <>
-              {/* Dropdown Field matching the image layout */}
+              {/* Dropdown Field */}
               <Pressable
-                onPress={() => setModalVisible(true)}
+                onPress={() => setShowGenderDropdown(true)}
                 style={tw`flex-row items-center justify-between border ${
                   errorMessage ? "border-red-500" : "border-[#EDF1F3]"
-                } rounded-full px-5 py-3 bg-white shadow-sm`}
+                } rounded-full px-5 py-2.5 bg-white shadow-sm`}
               >
                 <Text
                   style={tw`text-base ${
@@ -87,61 +87,66 @@ export const FormGenderSelect: React.FC<FormGenderDropdownProps> = ({
 
               {/* Selection Bottom Modal */}
               <Modal
-                visible={modalVisible}
+                visible={showGenderDropdown}
                 transparent
                 animationType="fade"
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => setShowGenderDropdown(false)}
               >
-                <TouchableOpacity
-                  style={tw`flex-1 bg-black/40 justify-end`}
-                  activeOpacity={1}
-                  onPress={() => setModalVisible(false)}
+                <TouchableWithoutFeedback
+                  onPress={() => setShowGenderDropdown(false)}
                 >
-                  <View style={tw`bg-white rounded-t-3xl p-5 max-h-[50%]`}>
-                    <View
-                      style={tw`w-12 h-1 bg-gray-300 rounded-full self-center mb-4`}
-                    />
-                    <Text
-                      style={tw`text-base font-semibold text-gray-800 mb-3 text-center`}
-                    >
-                      {label || "Select Option"}
-                    </Text>
-
-                    <FlatList
-                      data={options}
-                      keyExtractor={(item) => item.value}
-                      renderItem={({ item }) => {
-                        const isSelected = item.value === value;
-                        return (
-                          <TouchableOpacity
-                            style={tw`flex-row items-center justify-between py-3.5 px-4 border-b border-gray-100`}
-                            onPress={() => {
-                              onChange(item.value);
-                              setModalVisible(false);
-                            }}
-                          >
-                            <Text
-                              style={tw`text-base ${
-                                isSelected
-                                  ? "font-bold text-black"
-                                  : "text-gray-700"
-                              }`}
+                  <View
+                    style={tw`flex-1 bg-black/40 justify-center items-center px-6`}
+                  >
+                    <TouchableWithoutFeedback>
+                      <View
+                        style={tw`bg-white rounded-2xl w-full p-4 shadow-lg`}
+                      >
+                        <Text
+                          style={tw`text-base font-semibold text-gray-900 mb-3 px-2`}
+                        >
+                          {label || "Select Gender"}
+                        </Text>
+                        {options.map((item, index) => {
+                          const isSelected = item.value === value;
+                          return (
+                            <TouchableOpacity
+                              key={item.value}
+                              activeOpacity={0.7}
+                              onPress={() => {
+                                onChange(item.value);
+                                setShowGenderDropdown(false);
+                              }}
+                              style={[
+                                tw`flex-row items-center justify-between py-3 px-3 rounded-xl`,
+                                isSelected && tw`bg-gray-50`,
+                                index !== options.length - 1 &&
+                                  tw`border-b border-gray-100`,
+                              ]}
                             >
-                              {item.label}
-                            </Text>
-                            {isSelected && (
-                              <Ionicons
-                                name="checkmark"
-                                size={20}
-                                color="#5A7314"
-                              />
-                            )}
-                          </TouchableOpacity>
-                        );
-                      }}
-                    />
+                              <Text
+                                style={tw`text-sm ${
+                                  isSelected
+                                    ? "font-semibold text-[#F25C05]"
+                                    : "text-gray-700"
+                                }`}
+                              >
+                                {item.label}
+                              </Text>
+                              {isSelected && (
+                                <Ionicons
+                                  name="checkmark"
+                                  size={18}
+                                  color="#F25C05"
+                                />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </TouchableWithoutFeedback>
                   </View>
-                </TouchableOpacity>
+                </TouchableWithoutFeedback>
               </Modal>
             </>
           );

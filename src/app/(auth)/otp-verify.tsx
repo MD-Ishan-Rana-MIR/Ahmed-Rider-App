@@ -105,8 +105,6 @@ export default function OtpVerify() {
   };
   const { page_name } = useLocalSearchParams<{ page_name?: string }>();
 
-  console.log("page_name", page_name);
-
   const handleNavigate = () => {
     if (page_name === "registration") {
       return router.push("/(auth)/profile-setup?page_name=profile_setup");
@@ -114,8 +112,6 @@ export default function OtpVerify() {
       return router.push("/(auth)/reset-password?page_name=otpverify");
     }
   };
-
-  console.log(page_name);
 
   return (
     <View style={tw`bg-bgOlive flex-1`}>

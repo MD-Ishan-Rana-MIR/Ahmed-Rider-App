@@ -27,7 +27,6 @@ export default function VechileInfo() {
     }
   };
 
-  console.log("page_name", page_name);
   return (
     <View style={tw`flex-1 bg-white`}>
       <BackButton title="Vehicle Information" />

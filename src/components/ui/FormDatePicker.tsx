@@ -1,13 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, {
-    DateTimePickerEvent,
+  DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import {
-    Control,
-    Controller,
-    FieldErrors,
-    RegisterOptions,
+  Control,
+  Controller,
+  FieldErrors,
+  RegisterOptions,
 } from "react-hook-form";
 import { Platform, Pressable, Text, View } from "react-native";
 import tw from "twrnc";
@@ -78,7 +78,7 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
                 onPress={() => setShowPicker(true)}
                 style={tw`flex-row items-center justify-between border ${
                   errorMessage ? "border-red-500" : "border-[#EDF1F3]"
-                } rounded-full px-5 py-3 bg-white shadow-sm`}
+                } rounded-full px-5 py-2.5 bg-white shadow-sm`}
               >
                 <Text
                   style={tw`text-base ${

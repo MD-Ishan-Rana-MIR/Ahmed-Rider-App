@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    Control,
-    Controller,
-    FieldErrors,
-    RegisterOptions,
+  Control,
+  Controller,
+  FieldErrors,
+  RegisterOptions,
 } from "react-hook-form";
 import {
-    Text,
-    TextInput,
-    TextInputProps,
-    TouchableOpacity,
-    View,
+  Text,
+  TextInput,
+  TextInputProps,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import tw from "twrnc";
 

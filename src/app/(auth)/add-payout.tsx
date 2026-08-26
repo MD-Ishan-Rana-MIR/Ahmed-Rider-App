@@ -22,9 +22,7 @@ export default function AddPayout() {
     },
   });
 
-  const onSubmit = (data: PaymentFormValues) => {
-    console.log("Card Data Submitted:", data);
-  };
+  const onSubmit = (data: PaymentFormValues) => {};
 
   return (
     <View style={tw`bg-white flex-1`}>
