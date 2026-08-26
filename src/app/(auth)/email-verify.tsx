@@ -1,49 +1,47 @@
 // import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useForm } from "react-hook-form";
+import { StyleSheet, Text, View } from "react-native";
 
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
+import { FormInput } from "@/components/ui/EmailField";
 import tw from "../../../lib/tailwind";
-interface LoginFormInputs {
+
+interface EmailVerifyFormInputs {
   email: string;
 }
-const EmailVerify = () => {
+
+export default function EmailVerify() {
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormInputs>({
+  } = useForm<EmailVerifyFormInputs>({
     defaultValues: {
       email: "",
     },
   });
 
-  const onSubmit = (_data: LoginFormInputs) => {
-    router.push("/(auth)/otp-verify");
+  const { page_name } = useLocalSearchParams<{ page_name?: string }>();
+
+  const onSubmit = (_data: EmailVerifyFormInputs) => {};
+
+  const handleNavigate = () => {
+    router.push("/(auth)/otp-verify?page_name=f-email-verify");
   };
 
   return (
-    <View style={tw` bg-bgOlive flex-1  `}>
-      {/* back button  */}
-      <View style={tw` relative overflow-hidden  mb-1   `}>
-        {/* Absolute Decorative Background Image (Top Right) */}
-        {/* <Image
-          source={require("../../../assets/images/world.png")}
-          style={tw`absolute   -right-10 w-[274px] h-[274px] opacity-90`}
-          resizeMode="contain"
-        /> */}
-
-        {/* Header Content */}
-        <View style={tw`z-10 pr-20 `}>
-          {/* Back Button */}
-          <View style={tw``}>
+    <View style={tw`bg-bgOlive flex-1`}>
+      {/* Header Decorative & Back Section */}
+      <View style={tw`relative overflow-hidden mb-1`}>
+        <View style={tw`z-10 pr-20`}>
+          <View>
             <BackButton />
           </View>
 
           {/* Title & Subtitle */}
-          <View style={tw` px-5`}>
+          <View style={tw`px-5`}>
             <Text style={tw`text-white text-2xl font-semibold mb-1.5`}>
               Forgot Password
             </Text>
@@ -54,65 +52,33 @@ const EmailVerify = () => {
           </View>
         </View>
       </View>
-      {/* Login From  */}
-      <View
-        style={tw`bg-white flex-1  px-5 mt-10 rounded-tl-[37px] rounded-tr-[37px]`}
-      >
-        <View style={tw`gap-6`}>
-          {/* Header Title */}
-          <View></View>
 
-          {/* Form Fields */}
-          <View style={tw`gap-4`}>
-            {/* Phone/Email Address Input */}
-            <View>
-              <Text
-                style={tw`text-[#757575] text-sm font-Manrope-Regular.ttf mb-1.5`}
-              >
-                Email Address
-              </Text>
-              <Controller
-                control={control}
-                name="email"
-                rules={{
-                  required: "Email address is required",
-                  validate: (value) => {
-                    const isEmail = /\S+@\S+\.\S+/.test(value);
-                    return isEmail || "Enter a valid email address";
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View
-                    style={tw`flex-row items-center border ${
-                      errors.email ? "border-red-500" : "border-[#EDF1F3]"
-                    } rounded-[25.58px] px-3 py-1.5  shadow-[#E4E5E73D] `}
-                  >
-                    <TextInput
-                      style={tw`flex-1 text-base text-gray-900`}
-                      placeholder="Enter your email"
-                      placeholderTextColor="#ACACAC "
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      onBlur={onBlur}
-                      onChangeText={onChange}
-                      value={value}
-                    />
-                  </View>
-                )}
-              />
-              {errors.email && (
-                <Text style={tw`text-xs text-red-500 mt-1 ml-1`}>
-                  {errors.email.message}
-                </Text>
-              )}
-            </View>
-          </View>
+      {/* Form Bottom Sheet Container */}
+      <View
+        style={tw`bg-white flex-1 px-5 mt-10 rounded-tl-[37px] rounded-tr-[37px]`}
+      >
+        <View style={tw`gap-6 mt-8`}>
+          {/* Email Address Input */}
+          <FormInput
+            name="email"
+            label="Email Address"
+            control={control as any}
+            errors={errors}
+            placeholder="Enter Your Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            rules={{
+              required: "Email is required",
+              validate: (value) =>
+                /\S+@\S+\.\S+/.test(value) || "Enter a valid email address",
+            }}
+          />
         </View>
 
-        {/* Submit Section */}
+        {/* Submit Action */}
         <View style={tw`gap-4 mt-7`}>
           <Button
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleNavigate}
             text="Continue"
             disabled={isSubmitting}
           />
@@ -120,8 +86,6 @@ const EmailVerify = () => {
       </View>
     </View>
   );
-};
-
-export default EmailVerify;
+}
 
 const styles = StyleSheet.create({});

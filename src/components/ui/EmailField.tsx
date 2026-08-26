@@ -50,7 +50,7 @@ export const FormInput: React.FC<FormInputProps> = ({
           <View
             style={tw`flex-row items-center border ${
               errorMessage ? "border-red-500" : "border-[#EDF1F3]"
-            } rounded-[25.58px] px-3 py-1 shadow-[#E4E5E73D]`}
+            } rounded-[25.58px] px-3 py-0 shadow-[#E4E5E73D]`}
           >
             <TextInput
               style={tw`flex-1 text-base text-gray-900`}

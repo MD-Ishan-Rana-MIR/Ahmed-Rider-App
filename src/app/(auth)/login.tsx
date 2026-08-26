@@ -2,17 +2,9 @@
 
 import { router } from "expo-router";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { Controller, useForm } from "react-hook-form";
-
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { SvgXml } from "react-native-svg";
 
@@ -20,10 +12,12 @@ import { googleIcon } from "../../../lib/icon";
 
 import BackButton from "@/components/ui/BackButton";
 import { FormInput } from "@/components/ui/EmailField";
+import { FormCheckbox } from "@/components/ui/FormCheckbox";
+import { FormPasswordInput } from "@/components/ui/FormPasswordInput";
 import tw from "../../../lib/tailwind";
 
 interface LoginFormInputs {
-  identifier: string; // Email or Phone
+  identifier: string;
 
   password: string;
 
@@ -31,8 +25,6 @@ interface LoginFormInputs {
 }
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-
   const {
     control,
 
@@ -53,6 +45,10 @@ const Login = () => {
     router.push("/(tab)");
 
     // Execute login routing/mutation here
+  };
+
+  const handleNavigate = () => {
+    router.push("/(tab)");
   };
 
   return (
@@ -112,84 +108,66 @@ const Login = () => {
 
             <FormInput
               name="identifier"
-              label="Phone or Email Address"
+              label="Email Address"
               control={control as any}
               errors={errors}
-              placeholder="Enter phone or email"
+              placeholder="Enter email"
               keyboardType="email-address"
               autoCapitalize="none"
-              rules={{
-                required: "Email or phone number is required",
-                validate: (value) => {
-                  const isEmail = /\S+@\S+\.\S+/.test(value);
-                  const isPhone = /^[0-9+\s-]{8,15}$/.test(value);
-                  return (
-                    isEmail ||
-                    isPhone ||
-                    "Enter a valid email address or phone number"
-                  );
-                },
-              }}
+              // rules={{
+              //   required: "Email or phone number is required",
+              //   validate: (value) => {
+              //     const isEmail = /\S+@\S+\.\S+/.test(value);
+              //     const isPhone = /^[0-9+\s-]{8,15}$/.test(value);
+              //     return (
+              //       isEmail ||
+              //       isPhone ||
+              //       "Enter a valid email address or phone number"
+              //     );
+              //   },
+              // }}
             />
 
             {/* Password Input */}
 
-            <View style={tw``}>
-              <FormInput
+            <View style={tw`mt-4.5`}>
+              <FormPasswordInput
                 name="password"
                 label="Password"
                 control={control as any}
                 errors={errors}
-                placeholder="Enter your password"
-                secureTextEntry
-                containerStyle=""
-                rules={{
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Minimum 6 characters required",
-                  },
-                }}
+                // rules={{
+                //   required: "Password is required",
+                //   minLength: {
+                //     value: 6,
+                //     message: "Password must be at least 6 characters",
+                //   },
+                // }}
               />
             </View>
 
             {/* Remember Me & Forgot Password Row */}
 
-            <View style={tw`flex-row items-center justify-between mt-1`}>
+            <View style={tw`flex-row items-center justify-between  mt-2 `}>
               {/* Remember Me Checkbox */}
 
-              <Controller
-                control={control}
-                name="rememberMe"
-                render={({ field: { onChange, value } }) => (
-                  <Pressable
-                    onPress={() => onChange(!value)}
-                    style={tw`flex-row items-center`}
-                  >
-                    <View
-                      style={tw`w-5 h-5 rounded border ${
-                        value
-                          ? "bg-[#5A7314] border-[#5A7314]"
-                          : "border-gray-300 bg-white"
-                      } items-center justify-center mr-2`}
-                    >
-                      {/* {value && (
-
-                          <Ionicons name="checkmark" size={14} color="white" />
-
-                        )} */}
-                    </View>
-
-                    <Text style={tw`text-sm text-gray-600`}>Remember me</Text>
-                  </Pressable>
-                )}
+              <FormCheckbox
+                name="acceptTerms"
+                label="Remember me"
+                control={control as any}
+                containerStyle=""
+                activeColor="#5A7314"
+                // rules={{
+                //   validate: (value) =>
+                //     value === true || "You must accept terms to continue",
+                // }}
               />
 
               {/* Forgot Password Link */}
 
               <TouchableOpacity
                 onPress={() => {
-                  router.push("/(auth)/email-verify");
+                  router.push("/(auth)/email-verify?page_name===forgate");
                 }}
               >
                 <Text style={tw`text-sm font-semibold text-[#5A7314]`}>
@@ -205,7 +183,7 @@ const Login = () => {
         <View style={tw`gap-4 mt-7`}>
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleNavigate}
             style={tw`bg-[#5A7314] py-4 rounded-full items-center justify-center shadow-sm`}
           >
             <Text style={tw`text-white font-semibold text-base`}>Sign In</Text>
@@ -245,7 +223,7 @@ const Login = () => {
 
             <TouchableOpacity
               onPress={() => {
-                router.push("/(auth)/Registration");
+                router.push("/(auth)/registration");
               }}
             >
               <Text style={tw`text-sm font-bold text-[#5A7314]`}>Sign Up</Text>
