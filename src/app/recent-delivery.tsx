@@ -1,7 +1,7 @@
 import {
-    DeliveryCard,
-    OrderItem,
-} from "@/components/recent-delivery/DeliveryCard";
+  OrderItem,
+  RecentDeliveryCard
+} from "@/components/recent-delivery/RecentDeliveryCard";
 import BackButton from "@/components/ui/BackButton";
 import { FlatList, View } from "react-native";
 import tw from "../../lib/tailwind";
@@ -28,7 +28,7 @@ const RecentDeliver = () => {
         <FlatList
           data={tenOrderCards}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <DeliveryCard item={item} />}
+          renderItem={({ item }) => <RecentDeliveryCard item={item} />}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw`pb-6`}
         />

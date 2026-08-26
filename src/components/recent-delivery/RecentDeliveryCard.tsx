@@ -20,22 +20,22 @@ interface OrderItemCardProps {
   item: OrderItem;
 }
 
-export const DeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
+export const RecentDeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
   return (
     <View
-      style={tw`bg-white rounded-2xl border border-gray-100 p-4 shadow-sm my-2`}
+      style={tw`bg-white rounded-2xl border border-[#EBEBEB] py-4 px-3 shadow-sm my-2`}
     >
       {/* 1. Product Summary Box */}
       <View
-        style={tw`flex-row items-center border border-gray-100 rounded-2xl p-3 bg-white mb-4`}
+        style={tw`flex-row items-center border border-[#EBEBEB] rounded-2xl p-3 bg-[] mb-3`}
       >
         {/* Thumbnail Image Container */}
         <View
-          style={tw`w-16 h-16 bg-[#F3F4F6] rounded-xl justify-center items-center overflow-hidden mr-3`}
+          style={tw`w-19.5 h-19.5 p-0.5 bg-[#F3F3F3] rounded-xl justify-center items-center overflow-hidden mr-3`}
         >
           <Image
-            source={{ uri: item.imageUri }}
-            style={tw`w-14 h-14`}
+            source={require("../../../assets/product/product.png")}
+            style={tw` w-full p-2`}
             resizeMode="contain"
           />
         </View>
@@ -43,26 +43,42 @@ export const DeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
         {/* Item Details */}
         <View style={tw`flex-1 justify-between py-0.5`}>
           <View style={tw`flex-row justify-between items-start`}>
-            <Text style={tw`text-base font-semibold text-gray-900 flex-1 mr-2`}>
+            <Text
+              style={tw` text-blackText font-medium text-sm font-Manrope-Medium.ttf  flex-1 mr-2`}
+            >
               {item.title}
             </Text>
-            <Text style={tw`text-base font-bold text-[#FF5C00]`}>
+            <Text style={tw`text-sm font-Manrope-SemiBold.ttf text-[#F86B17]`}>
               {item.price}
             </Text>
           </View>
 
-          <View style={tw`flex-row items-center gap-4 my-1`}>
-            <Text style={tw`text-xs text-gray-500`}>
+          <View style={tw`flex-row items-center gap-4 my-1.5`}>
+            <Text
+              style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+            >
               Size:{" "}
-              <Text style={tw`text-gray-800 font-medium`}>{item.size}</Text>
+              <Text
+                style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+              >
+                {item.size}
+              </Text>
             </Text>
-            <Text style={tw`text-xs text-gray-500`}>
+            <Text
+              style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+            >
               Quantity:{" "}
-              <Text style={tw`text-gray-800 font-medium`}>{item.quantity}</Text>
+              <Text
+                style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+              >
+                {item.quantity}
+              </Text>
             </Text>
           </View>
 
-          <Text style={tw`text-xs text-gray-400 font-medium`}>
+          <Text
+            style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf mt-2`}
+          >
             #{item.orderNumber}
           </Text>
         </View>
@@ -87,10 +103,14 @@ export const DeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
             <View style={tw`w-2.5 h-2.5 rounded-full bg-[#FF5C00]`} />
           </View>
 
-          <Text style={tw`text-xs text-gray-400 font-medium mb-1`}>
+          <Text
+            style={tw`text-xs text-[#898989] font-Manrope-Regular.ttf mb-1`}
+          >
             Shop Address
           </Text>
-          <Text style={tw`text-base font-semibold text-gray-900`}>
+          <Text
+            style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf `}
+          >
             {item.shopAddress}
           </Text>
         </View>
@@ -114,10 +134,14 @@ export const DeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
             <Ionicons name="location-sharp" size={24} color="#FF5C00" />
           </View>
 
-          <Text style={tw`text-xs text-gray-400 font-medium mb-1`}>
+          <Text
+            style={tw`text-xs text-[#898989] font-Manrope-Regular.ttf mb-1`}
+          >
             Delivery Address
           </Text>
-          <Text style={tw`text-base font-semibold text-gray-900`}>
+          <Text
+            style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf `}
+          >
             {item.deliveryAddress}
           </Text>
         </View>

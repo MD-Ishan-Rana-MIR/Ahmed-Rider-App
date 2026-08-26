@@ -8,7 +8,10 @@
     "scheme": "riderapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/app-logo/ios.png"
+      "icon": "./assets/app-logo/ios.png",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDpXUCYWUfawKwLO0KlT0V9Y1t2DTBNx-A"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,12 @@
         "monochromeImage": "./assets/global/rider.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.chalapus.riderapp"
+      "package": "com.chalapus.riderapp",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDpXUCYWUfawKwLO0KlT0V9Y1t2DTBNx-A"
+        }
+      }
     },
     "web": {
       "output": "static",

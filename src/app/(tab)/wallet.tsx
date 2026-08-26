@@ -7,9 +7,9 @@ import { FlatList, Text, View } from "react-native";
 // } from "../../../components/ui/e-commerce/order-card/OrderCard";
 // import { SectionHeader } from "../../../components/ui/SectionHeader";
 import {
-  DeliveryCard,
   OrderItem,
-} from "@/components/recent-delivery/DeliveryCard";
+  RecentDeliveryCard,
+} from "@/components/recent-delivery/RecentDeliveryCard";
 import BackButton from "@/components/ui/BackButton";
 import PayoutCard from "@/components/ui/PayoutCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -25,8 +25,7 @@ const tenOrderCards: OrderItem[] = Array.from({ length: 10 }, (_, index) => ({
   quantity: 2,
   orderNumber: "ORD-10421",
   price: "$12.50",
-  imageUri:
-    "https://img.freepik.com/free-photo/men-s-outerwear-jacket-clothing_53876-101918.jpg",
+  imageUri: "../../../assets/product/product.png",
   shopAddress: "Street Side Road, Tripoli, Libya",
   deliveryAddress: "1901 Thornridge Road, Tripoli, Libya",
   distance: "3.2 km",
@@ -111,7 +110,7 @@ export default function Wallet() {
         <FlatList
           data={tenOrderCards}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <DeliveryCard item={item} />}
+          renderItem={({ item }) => <RecentDeliveryCard item={item} />}
           showsVerticalScrollIndicator={false}
         />
       </View>
