@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "../../../lib/tailwind";
 import BackButton from "../ui/BackButton";
 import Button from "../ui/Button";
@@ -64,8 +65,15 @@ export default function PersonalInformation() {
     },
   });
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View
+      style={[
+        tw`flex-1 bg-white`,
+        { paddingBottom: Math.max(insets.bottom, 12) },
+      ]}
+    >
       {/* Top Navigation Bar */}
       <BackButton title="Personal Information" showBackButton={true} />
       <KeyboardAwareScrollView

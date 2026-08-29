@@ -203,7 +203,7 @@ const Login = () => {
 
           <View style={tw`flex-row justify-center items-center gap-x-4 mt-6`}>
             <TouchableOpacity
-              style={tw` flex flex-row items-center justify-center gap-x-1.5 border border-[#D2D2D2]  px-28 py-4 rounded-[8px] `}
+              style={tw` flex flex-row items-center justify-center gap-x-1.5 border border-[#D2D2D2]   w-full py-4 rounded-[8px] `}
               onPress={() => {}}
             >
               <SvgXml xml={googleIcon} width={18} height={18} />

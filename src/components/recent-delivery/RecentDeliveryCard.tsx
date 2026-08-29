@@ -57,7 +57,7 @@ export const RecentDeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
             <Text
               style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
             >
-              Size:{" "}
+              Size:
               <Text
                 style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
               >
@@ -67,7 +67,7 @@ export const RecentDeliveryCard: React.FC<OrderItemCardProps> = ({ item }) => {
             <Text
               style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
             >
-              Quantity:{" "}
+              Quantity:
               <Text
                 style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
               >

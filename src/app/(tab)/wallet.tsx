@@ -98,7 +98,7 @@ export default function Wallet() {
       </View>
 
       {/* Section Header */}
-      <View style={tw`mt-5 mb-5`}>
+      <View style={tw`mt-5 mb-2`}>
         <SectionHeader
           title="Recent Delivery"
           onViewAll={onViewAll}
