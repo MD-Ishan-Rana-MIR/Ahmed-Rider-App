@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "twrnc";
 
 type DeliveryStatus = "Accepted" | "Picked Up" | "On The Way" | "Delivered";
@@ -68,9 +69,15 @@ export default function DeliveryDetailsScreen() {
   };
 
   const currentStepIndex = STATUSES.indexOf(currentStatus);
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View
+      style={[
+        tw`flex-1 bg-white`,
+        { paddingBottom: Math.max(insets.bottom, 12) },
+      ]}
+    >
       <BackButton title="Delivery Details" showBackButton={true} />
 
       <ScrollView

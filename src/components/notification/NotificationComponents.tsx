@@ -77,7 +77,7 @@ export default function NotificationComponents() {
         <NotificationItem
           text={
             <Text>
-              Your bus from Dhaka to Chittagong departs at{" "}
+              Your bus from Dhaka to Chittagong departs at
               <Text style={tw`font-bold text-[#111827]`}>8:00 AM</Text>. Don't
               forget to arrive early.
             </Text>
@@ -111,7 +111,7 @@ export default function NotificationComponents() {
         <NotificationItem
           text={
             <Text>
-              Your bus from Dhaka to Chittagong departs at{" "}
+              Your bus from Dhaka to Chittagong departs at
               <Text style={tw`font-bold text-[#111827]`}>8:00 AM</Text>. Don't
               forget to arrive early.
             </Text>

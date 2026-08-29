@@ -1,9 +1,10 @@
 import {
   OrderItem,
-  RecentDeliveryCard
+  RecentDeliveryCard,
 } from "@/components/recent-delivery/RecentDeliveryCard";
 import BackButton from "@/components/ui/BackButton";
 import { FlatList, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "../../lib/tailwind";
 
 const tenOrderCards: OrderItem[] = Array.from({ length: 10 }, (_, index) => ({
@@ -21,8 +22,14 @@ const tenOrderCards: OrderItem[] = Array.from({ length: 10 }, (_, index) => ({
 }));
 
 const RecentDeliver = () => {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View
+      style={[
+        tw`flex-1 bg-white`,
+        { paddingBottom: Math.max(insets.bottom, 12) },
+      ]}
+    >
       <BackButton title="Recent Delivery" />
       <View style={tw`flex-1  px-4 pt-5`}>
         <FlatList
