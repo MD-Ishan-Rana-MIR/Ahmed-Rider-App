@@ -1,40 +1,98 @@
+import {
+  useRiderProfileQuery,
+  useRiderProfileUpdateMutation,
+} from "@/redux/authApi";
 import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { errorMsg } from "../../../lib/errorMessage";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
 import BackButton from "../ui/BackButton";
 import Button from "../ui/Button";
-import DriverLicense from "../ui/DriverLicense";
-import { FormDatePicker } from "../ui/FormDatePicker";
-import { FormGenderSelect } from "../ui/FormGenderSelect";
-import { FormPhoneInput } from "../ui/FormPhoneInput";
-import { FormTextInput } from "../ui/FormTextInput";
 
-interface RegistrationFormInputs {
-  role: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  rememberMe: boolean;
+interface ProfileUpdateForm {
+  name: string;
+  phone_number: string;
+  gender: string;
+  dob: string;
+  address: string;
+  profile_picture?: string;
 }
 
+const GENDER_OPTIONS = ["Male", "Female", "Other"];
+
 export default function PersonalInformation() {
-  // Avatar Image State
-  const [profileImage, setProfileImage] = useState<string>(
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop",
-  );
+  const { data: profileResponse, isLoading: profileLoading } =
+    useRiderProfileQuery({});
+  const [riderProfileUpdate, { isLoading: isUpdating }] =
+    useRiderProfileUpdateMutation();
 
-  // Date Picker States
+  const profile = profileResponse?.data || "";
 
-  // 1. Image Picker Handler
+  const [profileImage, setProfileImage] = useState<string>();
+
+  // Modal & Picker Local States
+  const [genderModalVisible, setGenderModalVisible] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<ProfileUpdateForm>({
+    defaultValues: {
+      name: "",
+      phone_number: "",
+      gender: "",
+      dob: "",
+      address: "",
+      profile_picture: "",
+    },
+  });
+
+  // Sync API Data to Form State & Image State
+  useEffect(() => {
+    if (profile) {
+      reset({
+        name: profile?.name || "",
+        phone_number: profile?.rider_profile?.phone_number || "",
+        gender: profile?.rider_profile?.gender || "",
+        dob: profile?.rider_profile?.dob || "",
+        address: profile?.rider_profile?.address || "",
+        profile_picture: "",
+      });
+
+      const avatar = profile?.profile_photo_url;
+
+      if (avatar) {
+        setProfileImage(avatar);
+      }
+    }
+  }, [profile, reset]);
+
+  const insets = useSafeAreaInsets();
+
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      alert("Permission to access the camera roll is required!");
+      errorMsg("Permission to access the media library is required!");
       return;
     }
 
@@ -46,26 +104,42 @@ export default function PersonalInformation() {
     });
 
     if (!result.canceled && result.assets[0].uri) {
-      setProfileImage(result.assets[0].uri);
+      const selectedUri = result.assets[0].uri;
+      setProfileImage(selectedUri);
+      setValue("profile_picture", selectedUri, { shouldValidate: true });
     }
   };
 
-  const {
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<RegistrationFormInputs>({
-    defaultValues: {
-      role: "E commerce product seller",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      rememberMe: false,
-    },
-  });
+  const onSubmit = async (data: ProfileUpdateForm) => {
+    const formData = new FormData();
 
-  const insets = useSafeAreaInsets();
+    formData.append("name", data?.name || "");
+    formData.append("phone_number", data?.phone_number || "");
+    formData.append("gender", data?.gender || "");
+    formData.append("dob", data?.dob || "");
+    formData.append("address", data?.address || "");
+
+    if (data.profile_picture) {
+      const licenseResponse = await fetch(data.profile_picture);
+      const licenseBlob = await licenseResponse.blob();
+
+      formData.append("profile_picture", licenseBlob, "profiler.jpeg");
+    }
+
+    try {
+      const res = await riderProfileUpdate(formData).unwrap();
+      successMsg(res?.message || "Profile updated successfully!");
+    } catch (error) {
+      errorMsg(
+        error && typeof error === "object" && "data" in error
+          ? ((error as { data?: { message?: string } }).data?.message ??
+              String(error))
+          : error instanceof Error
+            ? error.message
+            : String(error),
+      );
+    }
+  };
 
   return (
     <View
@@ -74,8 +148,11 @@ export default function PersonalInformation() {
         { paddingBottom: Math.max(insets.bottom, 12) },
       ]}
     >
-      {/* Top Navigation Bar */}
-      <BackButton title="Personal Information" showBackButton={true} />
+      {/* Header */}
+      <View style={tw``}>
+        <BackButton showBackButton={true} title="Personal Information" />
+      </View>
+
       <KeyboardAwareScrollView
         enableOnAndroid
         extraScrollHeight={80}
@@ -92,17 +169,23 @@ export default function PersonalInformation() {
               onPress={handlePickImage}
               style={tw`relative`}
             >
-              {/* Double Border Circle Wrapper */}
               <View
                 style={tw`w-24 h-24 rounded-full p-1 border-2 border-[#F25C05] items-center justify-center overflow-hidden`}
               >
-                <Image
-                  source={{ uri: profileImage }}
-                  style={tw`w-full h-full rounded-full`}
-                />
+                {profileImage ? (
+                  <Image
+                    source={{ uri: profileImage }}
+                    style={tw`w-full h-full rounded-full`}
+                  />
+                ) : (
+                  <View
+                    style={tw`w-full h-full bg-gray-200 rounded-full items-center justify-center`}
+                  >
+                    <Ionicons name="person" size={40} color="#9CA3AF" />
+                  </View>
+                )}
               </View>
 
-              {/* Plus Icon Overlay */}
               <View
                 style={tw`absolute bottom-0 right-0 bg-black w-6 h-6 rounded-full items-center justify-center border-2 border-white`}
               >
@@ -110,109 +193,275 @@ export default function PersonalInformation() {
               </View>
             </TouchableOpacity>
 
-            {/* Label under Avatar */}
             <TouchableOpacity activeOpacity={0.7} onPress={handlePickImage}>
-              <Text style={tw`text-xs font-semibold text-gray-800 mt-2.5`}>
+              <Text style={tw`text-xs font-semibold text-[#ACACAC] mt-2.5`}>
                 Change Your Profile Picture
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Full Name */}
+          {/* Direct Input Fields */}
+          <View style={tw`gap-y-4.5`}>
+            {/* Full Name */}
+            <View>
+              <Text style={tw`text-sm text-[#757575] font-medium mb-1.5`}>
+                Full Name
+              </Text>
+              <Controller
+                control={control}
+                name="name"
+                rules={{ required: "Full name is required" }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View
+                    style={tw`flex-row items-center border ${
+                      errors.name ? "border-red-500" : "border-gray-200"
+                    } rounded-full px-4 py-3 bg-white`}
+                  >
+                    <TextInput
+                      value={value || ""}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Enter your name"
+                      placeholderTextColor="#ACACAC"
+                      style={tw`flex-1 text-sm text-gray-900 p-0`}
+                    />
+                  </View>
+                )}
+              />
+              {errors.name && (
+                <Text style={tw`text-xs text-red-500 mt-1 ml-2`}>
+                  {errors.name.message}
+                </Text>
+              )}
+            </View>
 
-          {/* Form Inputs Container */}
-          <View style={tw` gap-y-4.5 `}>
-            {/* Full Name Input */}
-
-            <FormTextInput
-              name="full_name"
-              label="Full Name"
-              control={control as any}
-              errors={errors}
-              placeholder="Enter your name"
-              rules={{ required: "First name is required" }}
-            />
-
-            {/* Phone Number Input */}
-            <View style={tw``}>
-              <FormPhoneInput
+            {/* Phone Number */}
+            <View>
+              <Text style={tw`text-sm text-[#757575] font-medium mb-1.5`}>
+                Phone Number
+              </Text>
+              <Controller
+                control={control}
                 name="phone_number"
-                label="Phone Number"
-                control={control as any}
-                errors={errors}
-                placeholder="Enter your phone number"
-                // rules={{
-                //   required: "Phone number is required",
-                //   validate: (val) => {
-                //     // Strips non-digits to check actual digit count (standard 7 to 15 digits)
-                //     const digitsOnly = val?.replace(/\D/g, "") || "";
-                //     if (digitsOnly.length < 7 || digitsOnly.length > 15) {
-                //       return "Please enter a valid phone number (7-15 digits)";
-                //     }
-                //     return true;
-                //   },
-                // }}
+                rules={{
+                  required: "Phone number is required",
+                  validate: (val) => {
+                    const digitsOnly = val?.replace(/\D/g, "") || "";
+                    if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+                      return "Please enter a valid phone number (7-15 digits)";
+                    }
+                    return true;
+                  },
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View
+                    style={tw`flex-row items-center border ${
+                      errors.phone_number ? "border-red-500" : "border-gray-200"
+                    } rounded-full px-4 py-3 bg-white`}
+                  >
+                    <TextInput
+                      value={value || ""}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Enter your phone number"
+                      placeholderTextColor="#ACACAC"
+                      keyboardType="phone-pad"
+                      style={tw`flex-1 text-sm text-gray-900 p-0`}
+                    />
+                  </View>
+                )}
               />
+              {errors.phone_number && (
+                <Text style={tw`text-xs text-red-500 mt-1 ml-2`}>
+                  {errors.phone_number.message}
+                </Text>
+              )}
             </View>
 
-            {/* Gender Selector Dropdown */}
+            {/* Gender Dropdown Input */}
             <View>
-              <FormGenderSelect
+              <Text style={tw`text-sm text-[#757575] font-medium mb-1.5`}>
+                Gender
+              </Text>
+              <Controller
+                control={control}
                 name="gender"
-                label="Gender"
-                control={control as any}
-                errors={errors}
-                placeholder="Select Gender"
-                // rules={{ required: "Gender selection is required" }}
+                rules={{ required: "Gender selection is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => setGenderModalVisible(true)}
+                      style={tw`flex-row items-center justify-between border ${
+                        errors.gender ? "border-red-500" : "border-gray-200"
+                      } rounded-full px-4 py-3 bg-white`}
+                    >
+                      <Text
+                        style={tw`text-sm ${
+                          value ? "text-gray-900" : "text-[#ACACAC]"
+                        }`}
+                      >
+                        {value || "Select Gender"}
+                      </Text>
+                      <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+
+                    {/* Gender Selection Modal */}
+                    <Modal
+                      visible={genderModalVisible}
+                      transparent
+                      animationType="fade"
+                      onRequestClose={() => setGenderModalVisible(false)}
+                    >
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() => setGenderModalVisible(false)}
+                        style={tw`flex-1 bg-black/50 justify-center px-6`}
+                      >
+                        <View style={tw`bg-white rounded-2xl p-4 gap-y-2`}>
+                          <Text
+                            style={tw`text-base font-bold text-gray-900 mb-2`}
+                          >
+                            Select Gender
+                          </Text>
+                          {GENDER_OPTIONS.map((item) => (
+                            <TouchableOpacity
+                              key={item}
+                              onPress={() => {
+                                onChange(item);
+                                setGenderModalVisible(false);
+                              }}
+                              style={tw`py-3 px-2 rounded-lg flex-row justify-between items-center`}
+                            >
+                              <Text
+                                style={tw`text-sm text-gray-800 font-medium`}
+                              >
+                                {item}
+                              </Text>
+                              {value === item && (
+                                <Ionicons
+                                  name="checkmark"
+                                  size={18}
+                                  color="#F25C05"
+                                />
+                              )}
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </TouchableOpacity>
+                    </Modal>
+                  </>
+                )}
               />
+              {errors.gender && (
+                <Text style={tw`text-xs text-red-500 mt-1 ml-2`}>
+                  {errors.gender.message}
+                </Text>
+              )}
             </View>
 
-            {/* Date of Birth Native Picker */}
+            {/* Date of Birth Picker Input */}
             <View>
-              <FormDatePicker
+              <Text style={tw`text-sm text-[#757575] font-medium mb-1.5`}>
+                Date of Birth
+              </Text>
+              <Controller
+                control={control}
                 name="dob"
-                label="Date of Birth"
-                placeholder="DD/MM/YY"
-                control={control as any}
-                errors={errors}
-                // rules={{ required: "Date of birth is required" }}
+                rules={{ required: "Date of birth is required" }}
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => setShowDatePicker(true)}
+                      style={tw`flex-row items-center justify-between border ${
+                        errors.dob ? "border-red-500" : "border-gray-200"
+                      } rounded-full px-4 py-3 bg-white`}
+                    >
+                      <Text
+                        style={tw`text-sm ${
+                          value ? "text-gray-900" : "text-[#ACACAC]"
+                        }`}
+                      >
+                        {value || "DD/MM/YY"}
+                      </Text>
+                      <Ionicons
+                        name="calendar-outline"
+                        size={18}
+                        color="#9CA3AF"
+                      />
+                    </TouchableOpacity>
+
+                    {showDatePicker && (
+                      <DateTimePicker
+                        value={value ? new Date(value) : new Date()}
+                        mode="date"
+                        display={Platform.OS === "ios" ? "spinner" : "default"}
+                        onChange={(_, selectedDate) => {
+                          setShowDatePicker(false);
+                          if (selectedDate) {
+                            const formatted = selectedDate
+                              .toISOString()
+                              .split("T")[0];
+                            onChange(formatted);
+                          }
+                        }}
+                      />
+                    )}
+                  </>
+                )}
               />
+              {errors.dob && (
+                <Text style={tw`text-xs text-red-500 mt-1 ml-2`}>
+                  {errors.dob.message}
+                </Text>
+              )}
             </View>
 
-            {/* Address Input */}
+            {/* Address */}
             <View>
-              <FormTextInput
+              <Text style={tw`text-sm text-[#757575] font-medium mb-1.5`}>
+                Address
+              </Text>
+              <Controller
+                control={control}
                 name="address"
-                label="Address"
-                control={control as any}
-                errors={errors}
-                placeholder="Enter your address"
-                // rules={{ required: "Address is required" }}
+                rules={{ required: "Address is required" }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View
+                    style={tw`flex-row items-center border ${
+                      errors.address ? "border-red-500" : "border-gray-200"
+                    } rounded-full px-4 py-3 bg-white`}
+                  >
+                    <TextInput
+                      value={value || ""}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="Enter your address"
+                      placeholderTextColor="#ACACAC"
+                      style={tw`flex-1 text-sm text-gray-900 p-0`}
+                    />
+                  </View>
+                )}
               />
+              {errors.address && (
+                <Text style={tw`text-xs text-red-500 mt-1 ml-2`}>
+                  {errors.address.message}
+                </Text>
+              )}
             </View>
-            <DriverLicense
-              name="driversLicense"
-              label="Driver's License"
-              placeholder="Driving license"
-              control={control as any}
-              errors={errors}
-              rules={{ required: "Driver's license is required" }}
-            />
+          </View>
 
-            <DriverLicense
-              name="nationalId"
-              label="National ID"
-              placeholder="National ID/Passport"
-              control={control as any}
-              errors={errors}
-              rules={{ required: "National ID is required" }}
+          {/* Action Button */}
+          <View style={tw`mt-6`}>
+            <Button
+              text="Update"
+              onPress={handleSubmit(onSubmit)}
+              isLoading={isUpdating || profileLoading}
             />
           </View>
         </ScrollView>
       </KeyboardAwareScrollView>
-      <View style={tw`px-5`}>
-        <Button text="Save" />
-      </View>
     </View>
   );
 }

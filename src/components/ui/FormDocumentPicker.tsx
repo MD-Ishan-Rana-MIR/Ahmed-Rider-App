@@ -70,7 +70,7 @@ export const FormDocumentPicker: React.FC<FormDocumentPickerProps> = ({
               onPress={() => handlePickImage(onChange)}
               style={tw`h-[150px] w-full bg-[#F6F6F6] border border-dashed ${
                 errorMessage ? "border-red-500" : "border-[#D1D5DB]"
-              } rounded-xl items-center justify-center p-4 overflow-hidden`}
+              } rounded-xl items-center justify-center  overflow-hidden`}
             >
               {value ? (
                 // Selected Image Preview

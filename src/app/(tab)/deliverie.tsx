@@ -1,85 +1,89 @@
-import { DeliveryCard, DeliveryItem } from "@/components/delivery/DeliveryCard";
+import { useState } from "react";
+import { FlatList, RefreshControl, View } from "react-native";
+import tw from "twrnc";
+
+import { DeliveryCard } from "@/components/delivery/DeliveryCard";
+import { DeliveryCardSkeletonList } from "@/components/skeleton/DeliveryCardSkeleton";
 import BackButton from "@/components/ui/BackButton";
 import { NotFoundState } from "@/components/ui/NotFound";
 import { SegmentedTab } from "@/components/ui/SegmentedTab";
-import { router } from "expo-router";
-import { useState } from "react";
-import { FlatList, View } from "react-native";
-import tw from "twrnc";
-
-const MOCK_ACTIVE_ORDERS: DeliveryItem[] = [
-  {
-    id: "1",
-    distance: "3.1 km",
-    price: "$6.25",
-    status: "Accepted",
-    shopAddress: "Street Side Road, Tripoli, Libya",
-    deliveryAddress: "1901 Thornridge Road, Tripoli, Libya",
-  },
-  {
-    id: "2",
-    distance: "5.4 km",
-    price: "$10.00",
-    status: "Accepted",
-    shopAddress: "Central Avenue, Tripoli, Libya",
-    deliveryAddress: "852 Palm Street, Tripoli, Libya",
-  },
-  {
-    id: "3",
-    distance: "5.4 km",
-    price: "$10.00",
-    status: "Accepted",
-    shopAddress: "Central Avenue, Tripoli, Libya",
-    deliveryAddress: "852 Palm Street, Tripoli, Libya",
-  },
-];
-
-const MOCK_COMPLETED_ORDERS: DeliveryItem[] = [];
+import { useGetAllDeliverQuery } from "@/redux/deliverApi";
 
 export default function DeliveriesScreen() {
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+  const [page, setPage] = useState<number>(1);
 
-  const currentData =
-    activeTab === "active" ? MOCK_ACTIVE_ORDERS : MOCK_COMPLETED_ORDERS;
+  // Fetch current tab orders with pagination
+  const { data, isLoading, isFetching, refetch } = useGetAllDeliverQuery({
+    filter: activeTab === "active" ? "on_the_way" : "delivered",
+    page,
+    per_page: 10,
+  });
+
+  const ordersData = data?.data?.orders;
+
+  const currentPage = ordersData?.current_page ?? 1;
+  const lastPage = ordersData?.last_page ?? 1;
+  const totalCount = ordersData?.total ?? 0;
+
+  // Handle switching tabs (resets pagination page to 1)
+  const handleTabChange = (tab: "active" | "completed") => {
+    setActiveTab(tab);
+    setPage(1);
+  };
+
+  // Pagination handler for infinite scroll
+  const handleLoadMore = () => {
+    if (!isFetching && currentPage < lastPage) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    if (page === 1) {
+      await refetch();
+    } else {
+      setPage(1);
+    }
+  };
 
   return (
-    <View style={tw`flex-1 bg-white`}>
+    <View style={tw`flex-1 w-full bg-white`}>
       <BackButton title="My Deliveries" showBackButton={true} />
 
       <View style={tw`flex-1 px-4 pt-4`}>
         <SegmentedTab
           activeTab={activeTab}
-          activeCount={MOCK_ACTIVE_ORDERS.length}
-          completedCount={MOCK_COMPLETED_ORDERS.length}
-          onTabChange={setActiveTab}
+          activeCount={activeTab === "active" ? totalCount : 0}
+          completedCount={activeTab === "completed" ? totalCount : 0}
+          onTabChange={handleTabChange}
         />
 
-        <FlatList
-          data={currentData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <DeliveryCard
-              item={item}
-              onViewDetails={(id) =>
-                router.push({
-                  pathname: "/delivery-details/[id]",
-                  params: { id },
-                })
-              }
-            />
-          )}
-          ListEmptyComponent={
-            <NotFoundState
-              title={`No ${activeTab === "active" ? "Active" : "Completed"} Orders`}
-              message={`No ${activeTab} deliveries.`}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            tw`pb-6`,
-            currentData.length === 0 && tw`flex-1 justify-center items-center`,
-          ]}
-        />
+        {isLoading && page === 1 ? (
+          <DeliveryCardSkeletonList count={4} />
+        ) : (
+          <FlatList
+            data={data?.data?.orders?.data}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <DeliveryCard item={item} />}
+            ListEmptyComponent={
+              <NotFoundState
+                title={`No ${activeTab === "active" ? "Active" : "Completed"} Orders`}
+                message={`No ${activeTab === "active" ? "on_the_way" : "delivered"} deliveries.`}
+              />
+            }
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFetching && page === 1}
+                onRefresh={handleRefresh}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </View>
   );

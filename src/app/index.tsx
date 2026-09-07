@@ -1,14 +1,14 @@
+import { useRiderProfileQuery } from "@/redux/authApi";
 import { useFonts } from "expo-font";
 import { router, SplashScreen } from "expo-router";
 import { useEffect } from "react";
-import { ActivityIndicator, StatusBar, View } from "react-native";
+import { ActivityIndicator, StatusBar, Text, View } from "react-native";
 import tw from "../../lib/tailwind";
 
-// Prevent the native splash screen from hiding until we are ready
+// Prevent the native splash screen from hiding until fonts and auth state are ready
 SplashScreen.preventAutoHideAsync();
 
 const Index = () => {
-  // Load custom fonts
   const [fontsLoaded, fontError] = useFonts({
     "Manrope-Bold": require("../../assets/font/Manrope-Bold.ttf"),
     "Manrope-ExtraBold": require("../../assets/font/Manrope-ExtraBold.ttf"),
@@ -19,70 +19,49 @@ const Index = () => {
     "Manrope-ExtraLight": require("../../assets/font/Manrope-ExtraLight.ttf"),
   });
 
-  // Static Mock States
-  const isLoading = false;
-  const isFetching = false;
-  const isError = false;
-  const userRole: "TENANT" | "LANDLORD" | null = null;
-  const data = null;
+  const { data, isLoading, isFetching, isError } = useRiderProfileQuery({});
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
-
     const handleNavigation = async () => {
-      // Ensure fonts are loaded/errored and data is ready before navigating
-      if ((fontsLoaded || fontError) && !isLoading && !isFetching) {
-        timeout = setTimeout(async () => {
-          await SplashScreen.hideAsync();
+      // 1. Wait until fonts are done loading (or errored) and API request is finished
+      if (!fontsLoaded && !fontError) return;
+      if (isLoading || isFetching) return;
 
-          router.replace("/(splash-screen)");
+      // 2. Hide native splash screen once initial state check is complete
+      await SplashScreen.hideAsync();
 
-          // if (data && userRole === "TENANT") {
-          //   router.replace("/(tenant-tab)");
-          // } else if (data && userRole === "LANDLORD") {
-          //   router.replace("/(property-owner-tab)");
-          // } else {
-          //   // Unauthenticated or error route
-          // }
-        }, 1500);
+      // 3. Authenticated Route: Profile exists and no error
+      if (data && !isError) {
+        router.replace("/(tab)");
+      } else {
+        // 4. Unauthenticated or Errored Route: Onboarding/Splash flow
+        router.replace("/(splash-screen)");
       }
     };
 
     handleNavigation();
-
-    return () => {
-      if (timeout) clearTimeout(timeout);
-    };
-  }, [fontsLoaded, fontError, isLoading, isFetching, userRole, data, isError]);
-
-  // Keep screen blank while fonts load natively
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
+  }, [fontsLoaded, fontError, isLoading, isFetching, data, isError]);
 
   return (
-    <View style={tw`flex-1`}>
+    <View style={tw`flex-1 bg-white`}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={tw`flex-1 px-4 justify-between py-10`}>
-        {/* Top Loading Indicator */}
-        <View style={tw`items-center`}>
-          {(isLoading || isFetching) && (
-            <ActivityIndicator size="large" color={tw.color("btnColor")} />
-          )}
-        </View>
-
-        {/* Center Logo */}
-        <View style={tw`items-center justify-center flex-1`}>
-          {/* <Image
-            source={require("../assets/images/app.logo.png")}
-            style={tw`w-48 h-48`}
-            resizeMode="contain"
-          /> */}
-        </View>
-
-        {/* Bottom Spacer to keep logo centered */}
-        <View style={tw`h-20`} />
+      {/* Centered Content */}
+      <View style={tw`flex-1 items-center justify-center px-4`}>
+        {/* Loading State & Centered Text */}
+        {isLoading || isFetching || !fontsLoaded ? (
+          <View style={tw`items-center gap-y-3`}>
+            <ActivityIndicator
+              size="large"
+              color={tw.color("btnColor") || "#5B7410"}
+            />
+            <Text
+              style={tw`text-gray-600 font-semibold text-base tracking-wide`}
+            >
+              Loading Rider App...
+            </Text>
+          </View>
+        ) : null}
       </View>
     </View>
   );

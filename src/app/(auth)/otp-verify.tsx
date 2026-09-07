@@ -1,7 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   NativeSyntheticEvent,
   Platform,
@@ -15,14 +17,22 @@ import {
 
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
+import {
+  useForgetOtpVerifyMutation,
+  useOtpVerifyMutation,
+  useResendOtpMutation,
+} from "@/redux/authApi";
+import { errorMsg } from "../../../lib/errorMessage";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
+import { RiderOtpVerifyPayload } from "../../../lib/type";
 
 interface OtpFormInputs {
   otp: string;
 }
 
 export default function OtpVerify() {
-  const [timer, setTimer] = useState(30);
+  const [timer, setTimer] = useState(60);
   const [otpArray, setOtpArray] = useState<string[]>(Array(6).fill(""));
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -32,12 +42,21 @@ export default function OtpVerify() {
     setValue,
     setError,
     clearErrors,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<OtpFormInputs>({
     defaultValues: {
       otp: "",
     },
   });
+
+  const [otpVerify, { isLoading }] = useOtpVerifyMutation();
+  const [resendOtp, { isLoading: isResending }] = useResendOtpMutation();
+
+  const { email, page_name } = useLocalSearchParams<{
+    email?: string;
+    page_name?: string;
+  }>();
 
   // Countdown timer logic
   useEffect(() => {
@@ -49,6 +68,9 @@ export default function OtpVerify() {
     }
     return () => clearInterval(interval);
   }, [timer]);
+
+  const [forgetOtpVerify, { isLoading: fLoading }] =
+    useForgetOtpVerifyMutation();
 
   // Handle OTP digit changes
   const handleChangeText = (text: string, index: number) => {
@@ -82,17 +104,43 @@ export default function OtpVerify() {
   };
 
   // Resend code handler
-  const handleResendCode = () => {
+
+  const data = {
+    email,
+  };
+
+  const handleResendCode = async () => {
     if (timer === 0) {
-      setTimer(30);
+      setTimer(60);
       setOtpArray(Array(6).fill(""));
       setValue("otp", "");
       inputRefs.current[0]?.focus();
-      // Dispatch API request to resend code here
+      try {
+        const res = await resendOtp(data).unwrap();
+        return successMsg(res?.message);
+      } catch (error) {
+        return errorMsg(
+          error && typeof error === "object" && "data" in error
+            ? ((error as { data?: { message?: string } }).data?.message ??
+                String(error))
+            : error instanceof Error
+              ? error.message
+              : String(error),
+        );
+      }
     }
   };
 
-  const onSubmit = (data: OtpFormInputs) => {
+  const onSubmit = async (data: OtpFormInputs) => {
+    if (!email) {
+      errorMsg("Email is required to verify the OTP");
+      return;
+    }
+
+    const payload: RiderOtpVerifyPayload = {
+      otp: data?.otp,
+      email: email,
+    };
     if (data.otp.length < 6) {
       setError("otp", {
         type: "manual",
@@ -100,18 +148,62 @@ export default function OtpVerify() {
       });
       return;
     }
-    // Navigate to next step upon successful verification
-    // router.push("/(auth)/reset-password");
-  };
-  const { page_name } = useLocalSearchParams<{ page_name?: string }>();
 
-  const handleNavigate = () => {
     if (page_name === "registration") {
-      return router.push("/(auth)/profile-setup?page_name=profile_setup");
+      try {
+        const res = await otpVerify(payload).unwrap();
+        if (res) {
+          reset();
+          router.push("/(auth)/login");
+          return successMsg(res?.message);
+        }
+      } catch (error) {
+        return errorMsg(
+          error && typeof error === "object" && "data" in error
+            ? ((error as { data?: { message?: string } }).data?.message ??
+                String(error))
+            : error instanceof Error
+              ? error.message
+              : String(error),
+        );
+      }
     } else if (page_name === "f-email-verify") {
-      return router.push("/(auth)/reset-password?page_name=otpverify");
+      try {
+        const res = await forgetOtpVerify(payload).unwrap();
+        if (res) {
+          if (res?.data?.password_reset_token) {
+            router.push(
+              `/(auth)/reset-password?page_name=otpverify&email=${email}`,
+            );
+            reset();
+            AsyncStorage.setItem(
+              "forget-password-token",
+              res?.data?.password_reset_token,
+            );
+
+            return successMsg(res?.message);
+          }
+        }
+      } catch (error) {
+        return errorMsg(
+          error && typeof error === "object" && "data" in error
+            ? ((error as { data?: { message?: string } }).data?.message ??
+                String(error))
+            : error instanceof Error
+              ? error.message
+              : String(error),
+        );
+      }
     }
   };
+
+  // const handleNavigate = () => {
+  //   if (page_name === "registration") {
+  //     return router.push("/(auth)/profile-setup?page_name=profile_setup");
+  //   } else if (page_name === "f-email-verify") {
+  //     return router.push("/(auth)/reset-password?page_name=otpverify");
+  //   }
+  // };
 
   return (
     <View style={tw`bg-bgOlive flex-1`}>
@@ -162,13 +254,13 @@ export default function OtpVerify() {
               <Controller
                 control={control}
                 name="otp"
-                // rules={{
-                //   required: "OTP is required",
-                //   minLength: {
-                //     value: 6,
-                //     message: "Please enter all 6 digits",
-                //   },
-                // }}
+                rules={{
+                  required: "OTP is required",
+                  minLength: {
+                    value: 6,
+                    message: "Please enter all 6 digits",
+                  },
+                }}
                 render={() => (
                   <View style={tw`flex-row justify-between items-center my-6`}>
                     {Array(6)
@@ -212,15 +304,20 @@ export default function OtpVerify() {
                 </View>
                 <TouchableOpacity
                   onPress={handleResendCode}
-                  disabled={timer > 0}
+                  disabled={timer > 0 || isResending}
+                  activeOpacity={0.7}
                 >
-                  <Text
-                    style={tw`text-sm font-semibold ${
-                      timer > 0 ? "text-gray-400" : "text-[#5B7410]"
-                    }`}
-                  >
-                    Send code again
-                  </Text>
+                  {isResending ? (
+                    <ActivityIndicator size="small" color="#5B7410" />
+                  ) : (
+                    <Text
+                      style={tw`text-sm font-semibold ${
+                        timer > 0 ? "text-gray-400" : "text-[#5B7410]"
+                      }`}
+                    >
+                      Send code again
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -228,9 +325,10 @@ export default function OtpVerify() {
             {/* Submit Button */}
             <View style={tw`mt-8`}>
               <Button
-                onPress={handleNavigate}
+                onPress={handleSubmit(onSubmit)}
                 text="Continue"
                 disabled={isSubmitting}
+                isLoading={isLoading || fLoading}
               />
             </View>
           </ScrollView>

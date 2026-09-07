@@ -6,11 +6,7 @@ import tw from "twrnc";
 import Button from "./Button";
 
 export interface PaymentFormValues {
-  cardHolderName: string;
-  cardNumber: string;
-  validUntil: string;
-  cvv: string;
-  saveCard: boolean;
+  mpesa_payout_number: string;
 }
 
 interface PaymentCardFormProps {

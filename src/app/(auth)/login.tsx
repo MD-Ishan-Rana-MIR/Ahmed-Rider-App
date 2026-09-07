@@ -6,22 +6,22 @@ import { useForm } from "react-hook-form";
 
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { SvgXml } from "react-native-svg";
-
-import { googleIcon } from "../../../lib/icon";
-
 import BackButton from "@/components/ui/BackButton";
+import Button from "@/components/ui/Button";
 import { FormInput } from "@/components/ui/EmailField";
-import { FormCheckbox } from "@/components/ui/FormCheckbox";
 import { FormPasswordInput } from "@/components/ui/FormPasswordInput";
+import { useLoginMutation } from "@/redux/authApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { errorMsg } from "../../../lib/errorMessage";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
 
 interface LoginFormInputs {
-  identifier: string;
+  email: string;
 
   password: string;
 
-  rememberMe: boolean;
+  // rememberMe: boolean;
 }
 
 const Login = () => {
@@ -29,26 +29,45 @@ const Login = () => {
     control,
 
     handleSubmit,
+    reset,
 
     formState: { errors },
   } = useForm<LoginFormInputs>({
     defaultValues: {
-      identifier: "",
+      email: "",
 
       password: "",
 
-      rememberMe: false,
+      // rememberMe: false,
     },
   });
 
-  const onSubmit = (data: LoginFormInputs) => {
-    router.push("/(tab)");
+  const [login, { isLoading }] = useLoginMutation();
 
-    // Execute login routing/mutation here
-  };
+  const onSubmit = async (data: LoginFormInputs) => {
+    try {
+      const res = await login(data).unwrap();
 
-  const handleNavigate = () => {
-    router.push("/(tab)");
+      if (res?.data?.token) {
+        // Always await AsyncStorage before router navigation
+        await AsyncStorage.setItem("token", res.data.token);
+
+        if (res?.data?.user?.rider_profile?.status == "pending") {
+          router.push("/(auth)/profile-setup");
+        } else if (res?.data?.user?.rider_profile?.status == "approved") {
+          router.push("/(tab)");
+        }
+
+        successMsg(res.message);
+        reset();
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error?.data?.message ||
+        error?.message ||
+        "An unexpected error occurred.";
+      return errorMsg(errorMessage);
+    }
   };
 
   return (
@@ -107,25 +126,21 @@ const Login = () => {
             {/* Phone/Email Address Input */}
 
             <FormInput
-              name="identifier"
+              name="email"
               label="Email Address"
               control={control as any}
               errors={errors}
               placeholder="Enter email"
               keyboardType="email-address"
               autoCapitalize="none"
-              // rules={{
-              //   required: "Email or phone number is required",
-              //   validate: (value) => {
-              //     const isEmail = /\S+@\S+\.\S+/.test(value);
-              //     const isPhone = /^[0-9+\s-]{8,15}$/.test(value);
-              //     return (
-              //       isEmail ||
-              //       isPhone ||
-              //       "Enter a valid email address or phone number"
-              //     );
-              //   },
-              // }}
+              rules={{
+                required: "Email  is required",
+                validate: (value) => {
+                  const isEmail = /\S+@\S+\.\S+/.test(value);
+                  const isPhone = /^[0-9+\s-]{8,15}$/.test(value);
+                  return isEmail || isPhone || "Enter a valid email address.";
+                },
+              }}
             />
 
             {/* Password Input */}
@@ -136,32 +151,32 @@ const Login = () => {
                 label="Password"
                 control={control as any}
                 errors={errors}
-                // rules={{
-                //   required: "Password is required",
-                //   minLength: {
-                //     value: 6,
-                //     message: "Password must be at least 6 characters",
-                //   },
-                // }}
+                rules={{
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                }}
               />
             </View>
 
             {/* Remember Me & Forgot Password Row */}
 
-            <View style={tw`flex-row items-center justify-between  mt-2 `}>
+            <View style={tw`flex-row items-center justify-end  mt-2 `}>
               {/* Remember Me Checkbox */}
 
-              <FormCheckbox
+              {/* <FormCheckbox
                 name="acceptTerms"
                 label="Remember me"
                 control={control as any}
                 containerStyle=""
                 activeColor="#5A7314"
-                // rules={{
-                //   validate: (value) =>
-                //     value === true || "You must accept terms to continue",
-                // }}
-              />
+                rules={{
+                  validate: (value) =>
+                    value === true || "You must accept terms to continue",
+                }}
+              /> */}
 
               {/* Forgot Password Link */}
 
@@ -181,38 +196,13 @@ const Login = () => {
         {/* Submit Section */}
 
         <View style={tw`gap-4 mt-7`}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleNavigate}
-            style={tw`bg-[#5A7314] py-4 rounded-full items-center justify-center shadow-sm`}
-          >
-            <Text style={tw`text-white font-semibold text-base`}>Sign In</Text>
-          </TouchableOpacity>
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            text="Log In"
+            isLoading={isLoading}
+          />
 
           {/* or continue with */}
-
-          <View style={tw` mt-7 flex-row items-center justify-center gap-x-2 `}>
-            <Text style={tw`flex-1 h-[1px] bg-[#D2D2D2]`}></Text>
-
-            <Text style={tw` text-[#AEAEAE] text-sm `}>or continue with</Text>
-
-            <Text style={tw`flex-1 h-[1px] bg-[#D2D2D2]`}></Text>
-          </View>
-
-          {/* Login With Social Media Buttons */}
-
-          <View style={tw`flex-row justify-center items-center gap-x-4 mt-6`}>
-            <TouchableOpacity
-              style={tw` flex flex-row items-center justify-center gap-x-1.5 border border-[#D2D2D2]   w-full py-4 rounded-[8px] `}
-              onPress={() => {}}
-            >
-              <SvgXml xml={googleIcon} width={18} height={18} />
-
-              <Text style={tw`text-sm font-medium text-[#969696]`}>
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-          </View>
 
           {/* Footer Link */}
 

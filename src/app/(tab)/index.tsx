@@ -1,3 +1,4 @@
+import { useRiderProfileQuery } from "@/redux/authApi";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -88,16 +89,16 @@ export default function RiderHomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleAccept = (id: string) => {
-    console.log("Order Accepted:", id);
     setRequests((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleDecline = (id: string) => {
-    console.log("Order Declined:", id);
     setRequests((prev) => prev.filter((item) => item.id !== id));
   };
 
   const count = 4;
+
+  const { data, isLoading: profileLoading } = useRiderProfileQuery({});
 
   return (
     <View style={tw`flex-1 `}>
@@ -107,12 +108,21 @@ export default function RiderHomeScreen() {
             <Text
               style={tw`text-[#FFFFFF] font-Manrope-SemiBold.ttf text-[16px] mt-2  `}
             >
-              Hi, Abdur Rahman
+              {data?.data?.name}
             </Text>
-            <Text
+            {/* <Text
               style={tw`mt-1 font-Manrope-Regular.ttf text-[10px] text-white `}
             >
               Tuesday, December 26
+            </Text> */}
+            <Text
+              style={tw`mt-1 font-Manrope-Regular.ttf text-[10px] text-white `}
+            >
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
             </Text>
           </View>
           <TouchableOpacity

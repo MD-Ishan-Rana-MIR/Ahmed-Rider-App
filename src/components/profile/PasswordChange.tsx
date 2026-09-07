@@ -25,9 +25,7 @@ export default function ChangePassword() {
     },
   });
 
-  const onSubmit = (data: ChangePasswordFormData) => {
-    console.log("Password Change Request Data:", data);
-  };
+  const onSubmit = (data: ChangePasswordFormData) => {};
 
   return (
     <View style={tw`flex-1 bg-white`}>

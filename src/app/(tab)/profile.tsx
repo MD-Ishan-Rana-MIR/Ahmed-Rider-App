@@ -1,9 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SvgXml } from "react-native-svg";
 
+import { ProfilePageSkeleton } from "@/components/skeleton/ProfilePageSkeleton";
 import BackButton from "@/components/ui/BackButton";
+import { useRiderLogoutMutation, useRiderProfileQuery } from "@/redux/authApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { errorMsg } from "../../../lib/errorMessage";
 import {
   about,
   logout,
@@ -13,6 +24,7 @@ import {
   settings,
   term,
 } from "../../../lib/icon";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
 
 interface MenuItemProps {
@@ -86,9 +98,59 @@ export default function Profile() {
     { iconName: logout, title: "Log Out", isLogout: true },
   ];
 
+  const [riderLogout, { isLoading }] = useRiderLogoutMutation();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout Confirmation",
+      "Are you sure you want to log out of your account?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const res = await riderLogout({}).unwrap();
+
+              // 1. Clear stored Auth Tokens
+              await AsyncStorage.removeItem("token");
+              await AsyncStorage.removeItem("forget-password-token");
+
+              // 3. Show Success Toast
+              successMsg(res?.message || "Logged out successfully");
+
+              // 4. Redirect to Sign-In screen
+              router.replace("/(auth)/login");
+            } catch (error) {
+              errorMsg(
+                error && typeof error === "object" && "data" in error
+                  ? ((error as { data?: { message?: string } }).data?.message ??
+                      String(error))
+                  : error instanceof Error
+                    ? error.message
+                    : String(error),
+              );
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  const { data, isLoading: profileLoading } = useRiderProfileQuery({});
+
+  if (profileLoading) {
+    return <ProfilePageSkeleton />;
+  }
+
   return (
     <View style={tw`flex-1 bg-white`}>
-      <BackButton title="Profile" />
+      <BackButton title="Profile" showBackButton={false} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw`bg-white px-5 mt-5 pb-8`}
@@ -101,22 +163,36 @@ export default function Profile() {
           <View
             style={tw`flex-row items-center gap-x-3  border-b px-4 pt-4 pb-6 border-gray-100 `}
           >
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop",
-              }}
-              style={tw`w-12 h-12 rounded-full bg-gray-200`}
-            />
+            {data?.data?.profile_photo_url ? (
+              <>
+                <Image
+                  source={{
+                    uri: data?.data?.profile_photo_url,
+                  }}
+                  style={tw`w-12 h-12 rounded-full bg-gray-200`}
+                />
+              </>
+            ) : (
+              <>
+                <Image
+                  source={{
+                    uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop",
+                  }}
+                  style={tw`w-12 h-12 rounded-full bg-gray-200`}
+                />
+              </>
+            )}
+
             <View style={tw`flex-1 `}>
               <Text
                 style={tw`text-[16px] font-Manrope-Bold.ttf text-[#222222]`}
               >
-                Abdur Rahman
+                {data?.data?.name}
               </Text>
               <Text
                 style={tw`text-xs font-Manrope-Regular.ttf text-[#858585] mt-1`}
               >
-                abdurraman@gmail.com
+                {data?.data?.email}
               </Text>
             </View>
           </View>
@@ -131,8 +207,7 @@ export default function Profile() {
               isLast={index === menuItems.length - 1}
               onPress={() => {
                 if (item.isLogout) {
-                  // Handle logout logic here (e.g., clear session/storage)
-                  router.replace("/auth/login" as any);
+                  handleLogout();
                 } else if (item.link) {
                   // Navigate for regular menu items
                   router.push(`/link/${item.link}` as any);

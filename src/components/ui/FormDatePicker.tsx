@@ -27,35 +27,41 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
   control,
   errors,
   label,
-  placeholder = "DD/MM/YY",
+  placeholder = "YYYY-MM-DD",
   rules,
   containerStyle = "",
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const errorMessage = errors[name]?.message as string | undefined;
 
-  // Format Date object to DD/MM/YY string
+  // Format Date object to YYYY-MM-DD string
   const formatDate = (date: Date): string => {
-    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = String(date.getFullYear()).slice(-2);
-    return `${day}/${month}/${year}`;
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   return (
     <View style={tw`${containerStyle}`}>
-      {label && (
-        <Text style={tw`text-sm text-gray-700 font-medium mb-1.5`}>
-          {label}
-        </Text>
-      )}
+      {label && <Text style={tw`text-sm text-[#757575] mb-1.5`}>{label}</Text>}
 
       <Controller
         control={control}
         name={name}
         rules={rules}
         render={({ field: { onChange, value } }) => {
-          const selectedDate = value ? new Date(value) : new Date();
+          // Parse YYYY-MM-DD safely to prevent timezone offsets
+          const getInitialDate = (): Date => {
+            if (!value) return new Date();
+            const [year, month, day] = value.split("-").map(Number);
+            if (year && month && day) {
+              return new Date(year, month - 1, day);
+            }
+            return new Date(value);
+          };
+
+          const selectedDate = getInitialDate();
 
           const handleDateChange = (
             _event: DateTimePickerEvent,
@@ -65,11 +71,12 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
               setShowPicker(false);
             }
             if (date) {
-              onChange(date.toISOString());
+              const formattedDate = formatDate(date);
+              onChange(formattedDate); // Saves as "YYYY-MM-DD" in react-hook-form
             }
           };
 
-          const displayValue = value ? formatDate(new Date(value)) : "";
+          const displayValue = value ? formatDate(selectedDate) : "";
 
           return (
             <>
@@ -97,7 +104,7 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
                   mode="date"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   onChange={handleDateChange}
-                  maximumDate={new Date()} // Restricts future dates for birth dates
+                  maximumDate={new Date()} // Restricts future dates
                 />
               )}
             </>

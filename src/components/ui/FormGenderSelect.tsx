@@ -53,11 +53,7 @@ export const FormGenderSelect: React.FC<FormGenderDropdownProps> = ({
 
   return (
     <View style={tw`${containerStyle}`}>
-      {label && (
-        <Text style={tw`text-sm text-gray-700 font-medium mb-1.5`}>
-          {label}
-        </Text>
-      )}
+      {label && <Text style={tw`text-sm text-[#757575]  mb-1.5`}>{label}</Text>}
 
       <Controller
         control={control}

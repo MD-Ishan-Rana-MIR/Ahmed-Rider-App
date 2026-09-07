@@ -1,9 +1,15 @@
+import { useRiderProfileQuery } from "@/redux/authApi";
+import { useGetWallectDashboardQuery } from "@/redux/walletApi";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import tw from "../../../lib/tailwind";
 
 export default function PayoutCard() {
+  const { data } = useGetWallectDashboardQuery({});
+
+  const { data: profileData } = useRiderProfileQuery({});
+
   return (
     <View
       style={tw`bg-[#5A7314] rounded-3xl p-4 overflow-hidden relative shadow-sm`}
@@ -18,7 +24,8 @@ export default function PayoutCard() {
         Payout Balance
       </Text>
       <Text style={tw`text-white mt-2 font-Manrope-SemiBold.ttf text-lg`}>
-        ${1200}
+        {profileData?.data?.rider_profile?.currency}{" "}
+        {profileData?.data?.rider_profile?.balance || 0}
       </Text>
 
       {/* Buttons Container */}

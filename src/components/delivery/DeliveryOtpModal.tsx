@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import {
-    Keyboard,
-    Modal,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import tw from "twrnc";
 

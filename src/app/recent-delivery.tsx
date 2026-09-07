@@ -2,8 +2,12 @@ import {
   OrderItem,
   RecentDeliveryCard,
 } from "@/components/recent-delivery/RecentDeliveryCard";
+import { DeliveryCardSkeletonList } from "@/components/skeleton/DeliveryCardSkeleton";
 import BackButton from "@/components/ui/BackButton";
-import { FlatList, View } from "react-native";
+import { NotFoundState } from "@/components/ui/NotFound";
+import { useGetAllDeliverQuery } from "@/redux/deliverApi";
+import { useState } from "react";
+import { FlatList, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "../../lib/tailwind";
 
@@ -23,6 +27,41 @@ const tenOrderCards: OrderItem[] = Array.from({ length: 10 }, (_, index) => ({
 
 const RecentDeliver = () => {
   const insets = useSafeAreaInsets();
+
+  const [page, setPage] = useState<number>(1);
+
+  // Fetch current tab orders with pagination
+  const {
+    data: resendDelivery,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAllDeliverQuery({
+    filter: "delivered",
+    page,
+    per_page: 10,
+  });
+
+  const ordersData = resendDelivery?.data?.orders;
+
+  const currentPage = ordersData?.current_page ?? 1;
+  const lastPage = ordersData?.last_page ?? 1;
+
+  // Pagination handler for infinite scroll
+  const handleLoadMore = () => {
+    if (!isFetching && currentPage < lastPage) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    if (page === 1) {
+      await refetch();
+    } else {
+      setPage(1);
+    }
+  };
   return (
     <View
       style={[
@@ -32,13 +71,25 @@ const RecentDeliver = () => {
     >
       <BackButton title="Recent Delivery" />
       <View style={tw`flex-1  px-4 pt-5`}>
-        <FlatList
-          data={tenOrderCards}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <RecentDeliveryCard item={item} />}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw`pb-6`}
-        />
+        {isLoading && page === 1 ? (
+          <DeliveryCardSkeletonList count={4} />
+        ) : (
+          <FlatList
+            data={ordersData?.data}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <RecentDeliveryCard item={item} />}
+            ListEmptyComponent={<NotFoundState />}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFetching && page === 1}
+                onRefresh={handleRefresh}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
     </View>
   );

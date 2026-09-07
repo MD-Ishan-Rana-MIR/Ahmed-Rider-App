@@ -1,9 +1,12 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { formatCurrency } from "react-native-format-currency";
 import { SvgXml } from "react-native-svg";
 import tw from "twrnc";
 import { swapIcon } from "../../../lib/icon";
+import { DeliveriApiResponse } from "../../../lib/type/deliveryType";
 
 export interface DeliveryItem {
   id: string;
@@ -15,17 +18,13 @@ export interface DeliveryItem {
 }
 
 interface DeliveryCardProps {
-  item: DeliveryItem;
-  onViewDetails?: (id: string) => void;
+  item: DeliveriApiResponse;
 }
 
-export const DeliveryCard: React.FC<DeliveryCardProps> = ({
-  item,
-  onViewDetails,
-}) => {
+export const DeliveryCard: React.FC<DeliveryCardProps> = ({ item }) => {
   return (
     <View
-      style={tw`bg-white rounded-[12px] border border-[#E3E3E3] p-4  my-2 shadow-sm`}
+      style={tw`bg-white rounded-[12px] border border-[#E3E3E3] p-4  my-2 shadow-sm w-full `}
     >
       {/* Top Header: Icon, Distance, Price & Status Badge */}
       <View
@@ -39,12 +38,20 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
           </View>
           <View>
             <Text style={tw`text-sm text-[#505050] font-Manrope-SemiBold.ttf `}>
-              {item.distance}
+              {/* {item.distance} */}
+              {item?.distance_km}km
             </Text>
             <Text
               style={tw`text-[10px] font-Manrope-Medium.ttf text-[#505050] `}
             >
-              {item.price}
+              <Text style={tw`text-xs text-[#505050]`}>
+                {
+                  formatCurrency({
+                    amount: Number(item?.delivery_fee ?? 0),
+                    code: item?.currency ?? "",
+                  })[0]
+                }
+              </Text>
             </Text>
           </View>
         </View>
@@ -81,7 +88,7 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
           <Text
             style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf `}
           >
-            {item.shopAddress}
+            {item?.pickup?.address}
           </Text>
         </View>
 
@@ -111,7 +118,7 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
           <Text
             style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf `}
           >
-            {item.deliveryAddress}
+            {item?.dropoff?.address_text}
           </Text>
         </View>
       </View>
@@ -119,7 +126,12 @@ export const DeliveryCard: React.FC<DeliveryCardProps> = ({
       {/* Action Button */}
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => onViewDetails && onViewDetails(item.id)}
+        onPress={() => {
+          router.push({
+            pathname: "/delivery-details/[id]",
+            params: { id: String(item?.id) },
+          });
+        }}
         style={tw`bg-[#EFF1E7] rounded-full py-3.5 items-center justify-center mt-3`}
       >
         <Text style={tw`text-sm font-Manrope-Medium.ttf text-[#5B7410]  `}>

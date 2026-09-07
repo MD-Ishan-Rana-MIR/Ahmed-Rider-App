@@ -6,6 +6,9 @@ import { StyleSheet, Text, View } from "react-native";
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { FormInput } from "@/components/ui/EmailField";
+import { useEmailVerifyMutation } from "@/redux/authApi";
+import { errorMsg } from "../../../lib/errorMessage";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
 
 interface EmailVerifyFormInputs {
@@ -16,6 +19,7 @@ export default function EmailVerify() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<EmailVerifyFormInputs>({
     defaultValues: {
@@ -23,13 +27,35 @@ export default function EmailVerify() {
     },
   });
 
+  const [emailVerify, { isLoading }] = useEmailVerifyMutation();
+
   const { page_name } = useLocalSearchParams<{ page_name?: string }>();
 
-  const onSubmit = (_data: EmailVerifyFormInputs) => {};
-
-  const handleNavigate = () => {
-    router.push("/(auth)/otp-verify?page_name=f-email-verify");
+  const onSubmit = async (_data: EmailVerifyFormInputs) => {
+    try {
+      const res = await emailVerify(_data).unwrap();
+      if (res) {
+        router.push(
+          `/(auth)/otp-verify?email=${_data?.email}&page_name=f-email-verify`,
+        );
+        reset();
+        return successMsg(res?.message);
+      }
+    } catch (error) {
+      return errorMsg(
+        error && typeof error === "object" && "data" in error
+          ? ((error as { data?: { message?: string } }).data?.message ??
+              String(error))
+          : error instanceof Error
+            ? error.message
+            : String(error),
+      );
+    }
   };
+
+  // const handleNavigate = () => {
+  // router.push(`/(auth)/otp-verify?email=${_data?.email}&page_name=f-email-verify`);
+  // };
 
   return (
     <View style={tw`bg-bgOlive flex-1`}>
@@ -78,9 +104,10 @@ export default function EmailVerify() {
         {/* Submit Action */}
         <View style={tw`gap-4 mt-7`}>
           <Button
-            onPress={handleNavigate}
+            onPress={handleSubmit(onSubmit)}
             text="Continue"
             disabled={isSubmitting}
+            isLoading={isLoading}
           />
         </View>
       </View>

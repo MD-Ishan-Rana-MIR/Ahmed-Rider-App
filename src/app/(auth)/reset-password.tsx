@@ -1,8 +1,11 @@
 import BackButton from "@/components/ui/BackButton";
 import Button from "@/components/ui/Button";
 import { FormPasswordInput } from "@/components/ui/FormPasswordInput";
-import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
 import { useForm } from "react-hook-form";
+
+import { useForgetPasswordMutation } from "@/redux/authApi";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,33 +13,66 @@ import {
   Text,
   View,
 } from "react-native";
+import { errorMsg } from "../../../lib/errorMessage";
+import { successMsg } from "../../../lib/successMsg";
 import tw from "../../../lib/tailwind";
 
 interface ResetPasswordInputs {
   password: string;
-  confirmPassword: string;
+  password_confirmation: string;
 }
 
 export default function ResetPassword() {
+  const [forgetPassword, { isLoading }] = useForgetPasswordMutation();
   const {
     control,
     handleSubmit,
     watch,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordInputs>({
     defaultValues: {
       password: "",
-      confirmPassword: "",
+      password_confirmation: "",
     },
   });
 
-  const onSubmit = (data: ResetPasswordInputs) => {
-    // Navigate to login after password update
-    router.replace("/(auth)/profile-step.1");
-  };
+  const { email } = useLocalSearchParams<{
+    email?: string;
+  }>();
 
-  const handleNavigate = () => {
-    router.push("/(tab)");
+  const onSubmit = async (data: ResetPasswordInputs) => {
+    const token = await AsyncStorage.getItem("forget-password-token");
+
+    const payload = {
+      email: email,
+      password: data?.password,
+      password_confirmation: data?.password_confirmation,
+      password_reset_token: token,
+    };
+
+    try {
+      const res = await forgetPassword(payload).unwrap();
+      if (res) {
+        if (token) {
+          successMsg(res?.message);
+          AsyncStorage.removeItem("forget-password-token");
+          reset();
+          router.push("/(auth)/login");
+        } else {
+          router.push("/(auth)/email-verify");
+        }
+      }
+    } catch (error) {
+      return errorMsg(
+        error && typeof error === "object" && "data" in error
+          ? ((error as { data?: { message?: string } }).data?.message ??
+              String(error))
+          : error instanceof Error
+            ? error.message
+            : String(error),
+      );
+    }
   };
 
   return (
@@ -103,7 +139,7 @@ export default function ResetPassword() {
               {/* Confirm Password */}
               <View style={tw`mb-2`}>
                 <FormPasswordInput
-                  name="confirmPassword"
+                  name="password_confirmation"
                   label="Confirm Password"
                   placeholder="Re-enter password"
                   control={control as any}
@@ -122,7 +158,8 @@ export default function ResetPassword() {
               <Button
                 text="Continue"
                 disabled={isSubmitting}
-                onPress={handleNavigate}
+                onPress={handleSubmit(onSubmit)}
+                isLoading={isLoading}
               />
             </View>
           </ScrollView>

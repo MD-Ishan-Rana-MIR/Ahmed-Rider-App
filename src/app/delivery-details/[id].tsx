@@ -1,8 +1,12 @@
+import DeliveryActionButton from "@/components/delivery/DeliveryActionButton";
 import { DeliveryOtpModal } from "@/components/delivery/DeliveryOtpModal";
+import StaticDeliveryStepper from "@/components/delivery/StaticDeliveryStepper";
+import DeliveryDetailsSkeleton from "@/components/skeleton/DeliveryDetailsSkeleton";
 import BackButton from "@/components/ui/BackButton";
-import { Feather, Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import { useDeliveryDetailsQuery } from "@/redux/deliverApi";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useRef, useState } from "react";
 import {
   Alert,
   Linking,
@@ -17,29 +21,33 @@ import tw from "twrnc";
 
 type DeliveryStatus = "Accepted" | "Picked Up" | "On The Way" | "Delivered";
 
-const STATUSES: DeliveryStatus[] = [
-  "Accepted",
-  "Picked Up",
-  "On The Way",
-  "Delivered",
-];
-
-const BUTTON_TEXT_MAP: Record<DeliveryStatus, string> = {
-  Accepted: "Mark as Picked Up",
-  "Picked Up": "Mark as On the Way",
-  "On The Way": "Mark as Delivered",
-  Delivered: "Order Completed",
-};
+// const BUTTON_TEXT_MAP: Record<DeliveryStatus, string> = {
+//   Accepted: "Mark as Picked Up",
+//   "Picked Up": "Mark as On the Way",
+//   "On The Way": "Mark as Delivered",
+//   Delivered: "Order Completed",
+// };
 
 export default function DeliveryDetailsScreen() {
+  const { id } = useLocalSearchParams();
+
+  console.log(id);
+
+  const { data, isLoading } = useDeliveryDetailsQuery(id);
+
   const [isOtpModalVisible, setIsOtpModalVisible] = useState(false);
   const [currentStatus, setCurrentStatus] =
     useState<DeliveryStatus>("Accepted");
 
   // Coordinates
-  const riderLocation = { latitude: 26.326, longitude: 43.962 };
-  const shopLocation = { latitude: 26.338, longitude: 43.978 };
-  const deliveryLocation = { latitude: 26.315, longitude: 43.99 };
+  const riderLocation = {
+    latitude: data?.data?.order?.pickup?.latitude,
+    longitude: data?.data?.order?.pickup?.longitude,
+  };
+  const shopLocation = {
+    latitude: data?.data?.order?.dropoff?.latitude,
+    longitude: data?.data?.order?.dropoff?.longitude,
+  };
 
   // Advance to next status
   const handleUpdateStatus = () => {
@@ -48,11 +56,6 @@ export default function DeliveryDetailsScreen() {
       setIsOtpModalVisible(true);
       return;
     }
-
-    const currentIndex = STATUSES.indexOf(currentStatus);
-    if (currentIndex < STATUSES.length - 1) {
-      setCurrentStatus(STATUSES[currentIndex + 1]);
-    }
   };
 
   const handleCall = (phoneNumber: string) => {
@@ -60,7 +63,6 @@ export default function DeliveryDetailsScreen() {
   };
 
   const handleConfirmOtp = (enteredOtp: string) => {
-    console.log("Submitted OTP:", enteredOtp);
     // Add your backend validation here if needed
     setIsOtpModalVisible(false);
     setCurrentStatus("Delivered");
@@ -68,8 +70,11 @@ export default function DeliveryDetailsScreen() {
     router.push("/success-message");
   };
 
-  const currentStepIndex = STATUSES.indexOf(currentStatus);
   const insets = useSafeAreaInsets();
+  const mapRef = useRef<MapView | null>(null);
+  if (isLoading) {
+    return <DeliveryDetailsSkeleton />;
+  }
 
   return (
     <View
@@ -91,91 +96,31 @@ export default function DeliveryDetailsScreen() {
           <Text style={tw`text-base font-bold text-gray-900 mb-4`}>
             Delivery Timeline
           </Text>
-
-          <View style={tw`flex-row items-center justify-between`}>
-            {STATUSES.map((status, index) => {
-              const isCompleted = index <= currentStepIndex;
-              const isLast = index === STATUSES.length - 1;
-
-              return (
-                <React.Fragment key={status}>
-                  {/* Step Item */}
-                  <View style={tw`items-center flex-1`}>
-                    <View
-                      style={tw`w-10 h-10 rounded-full items-center justify-center mb-1.5 ${
-                        isCompleted
-                          ? "bg-[#34A853]"
-                          : "bg-gray-100 border border-gray-200"
-                      }`}
-                    >
-                      {index === 0 && (
-                        <Ionicons
-                          name="checkmark"
-                          size={20}
-                          color={isCompleted ? "#FFF" : "#9CA3AF"}
-                        />
-                      )}
-                      {index === 1 && (
-                        <Feather
-                          name="box"
-                          size={18}
-                          color={isCompleted ? "#FFF" : "#9CA3AF"}
-                        />
-                      )}
-                      {index === 2 && (
-                        <Feather
-                          name="send"
-                          size={18}
-                          color={isCompleted ? "#FFF" : "#9CA3AF"}
-                        />
-                      )}
-                      {index === 3 && (
-                        <Ionicons
-                          name="checkmark-done"
-                          size={20}
-                          color={isCompleted ? "#FFF" : "#9CA3AF"}
-                        />
-                      )}
-                    </View>
-                    <Text
-                      style={tw`text-[11px] font-medium text-center ${
-                        isCompleted
-                          ? "text-gray-900 font-semibold"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {status}
-                    </Text>
-                  </View>
-
-                  {/* Connecting Line */}
-                  {!isLast && (
-                    <View
-                      style={tw`h-[2px] flex-1 mx-1 -mt-5 ${
-                        index < currentStepIndex
-                          ? "bg-[#34A853]"
-                          : "bg-gray-200"
-                      }`}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </View>
+          <StaticDeliveryStepper
+            timeline={data?.data?.order?.delivery_timeline}
+          />
         </View>
 
+        {/* 2. Interactive Google Map */}
         {/* 2. Interactive Google Map */}
         <View
           style={tw`h-64 rounded-3xl overflow-hidden border border-gray-100 relative`}
         >
           <MapView
+            ref={mapRef}
             provider={PROVIDER_GOOGLE}
             style={tw`w-full h-full`}
-            initialRegion={{
-              latitude: 26.332,
-              longitude: 43.97,
-              latitudeDelta: 0.04,
-              longitudeDelta: 0.04,
+            // ম্যাপ লোড হওয়ার সাথেই দুটি কোঅর্ডিনেট ফ্রেমের মধ্যে ফিট হয়ে যাবে
+            onMapReady={() => {
+              if (riderLocation.latitude && shopLocation.latitude) {
+                mapRef.current?.fitToCoordinates(
+                  [riderLocation, shopLocation],
+                  {
+                    edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                    animated: true,
+                  },
+                );
+              }
             }}
           >
             {/* Dashed Route Polyline */}
@@ -254,7 +199,7 @@ export default function DeliveryDetailsScreen() {
               <Text
                 style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf mb-3 `}
               >
-                Street Side Road, Tripoli, Libya
+                {data?.data?.order?.pickup?.address}
               </Text>
 
               {/* Shop Owner Phone Call Bar */}
@@ -270,7 +215,7 @@ export default function DeliveryDetailsScreen() {
                   <Text
                     style={tw`text-sm text-[#1A1A1A] font-Manrope-Regular.ttf `}
                   >
-                    +218 91 234 5678
+                    {data?.data?.order?.pickup?.phone_number}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -294,7 +239,7 @@ export default function DeliveryDetailsScreen() {
               <Text
                 style={tw`text-[16px] text-[#1A1A1A] font-Manrope-Regular.ttf mb-3 `}
               >
-                1901 Thornridge Road, Tripoli, Libya
+                {data?.data?.order?.dropoff?.address_text}
               </Text>
 
               {/* Customer Phone Call Bar */}
@@ -310,7 +255,7 @@ export default function DeliveryDetailsScreen() {
                   <Text
                     style={tw`text-sm text-[#1A1A1A] font-Manrope-Regular.ttf `}
                   >
-                    +218 91 234 5678
+                    {data?.data?.order?.dropoff?.phone_number}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -326,18 +271,12 @@ export default function DeliveryDetailsScreen() {
         </View>
 
         {/* 4. Action Button with Dynamic Status Updates */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          disabled={currentStatus === "Delivered"}
-          onPress={handleUpdateStatus}
-          style={tw`mt-2 py-4 rounded-full items-center justify-center shadow-sm ${
-            currentStatus === "Delivered" ? "bg-gray-400" : "bg-[#526D18]"
-          }`}
-        >
-          <Text style={tw`text-white font-bold text-base`}>
-            {BUTTON_TEXT_MAP[currentStatus]}
-          </Text>
-        </TouchableOpacity>
+        <DeliveryActionButton
+          timeline={data?.data?.order?.delivery_timeline}
+          onUpdateStatus={handleUpdateStatus}
+          onOpenOtpModal={() => setIsOtpModalVisible(true)}
+          id={id}
+        />
       </ScrollView>
       <DeliveryOtpModal
         visible={isOtpModalVisible}

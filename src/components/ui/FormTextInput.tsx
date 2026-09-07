@@ -1,9 +1,9 @@
 import React from "react";
 import {
-    Control,
-    Controller,
-    FieldErrors,
-    RegisterOptions,
+  Control,
+  Controller,
+  FieldErrors,
+  RegisterOptions,
 } from "react-hook-form";
 import { Text, TextInput, TextInputProps, View } from "react-native";
 import tw from "twrnc";
@@ -18,6 +18,7 @@ interface FormTextInputProps extends Omit<
   label?: string;
   rules?: RegisterOptions;
   containerStyle?: string;
+  defaultValue?: string;
 }
 
 export const FormTextInput: React.FC<FormTextInputProps> = ({
@@ -27,6 +28,7 @@ export const FormTextInput: React.FC<FormTextInputProps> = ({
   label,
   rules,
   containerStyle = "",
+  defaultValue = "",
   placeholderTextColor = "#9CA3AF",
   ...textInputProps
 }) => {
@@ -34,16 +36,13 @@ export const FormTextInput: React.FC<FormTextInputProps> = ({
 
   return (
     <View style={tw`${containerStyle}`}>
-      {label && (
-        <Text style={tw`text-sm text-gray-700 font-medium mb-1.5`}>
-          {label}
-        </Text>
-      )}
+      {label && <Text style={tw`text-sm text-[#757575]  mb-1.5`}>{label}</Text>}
 
       <Controller
         control={control}
         name={name}
         rules={rules}
+        defaultValue={defaultValue}
         render={({ field: { onChange, onBlur, value } }) => (
           <View
             style={tw`flex-row items-center border ${
@@ -51,7 +50,7 @@ export const FormTextInput: React.FC<FormTextInputProps> = ({
             } rounded-full px-4 py-3 bg-white`}
           >
             <TextInput
-              value={value}
+              value={value ?? ""}
               onChangeText={onChange}
               onBlur={onBlur}
               placeholderTextColor={placeholderTextColor}
