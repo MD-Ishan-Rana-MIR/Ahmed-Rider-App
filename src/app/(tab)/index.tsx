@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import { useRiderProfileQuery } from "@/redux/authApi";
+=======
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -89,16 +92,27 @@ export default function RiderHomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleAccept = (id: string) => {
+<<<<<<< HEAD
+=======
+    console.log("Order Accepted:", id);
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
     setRequests((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleDecline = (id: string) => {
+<<<<<<< HEAD
+=======
+    console.log("Order Declined:", id);
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
     setRequests((prev) => prev.filter((item) => item.id !== id));
   };
 
   const count = 4;
+<<<<<<< HEAD
 
   const { data, isLoading: profileLoading } = useRiderProfileQuery({});
+=======
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 
   return (
     <View style={tw`flex-1 `}>
@@ -108,6 +122,7 @@ export default function RiderHomeScreen() {
             <Text
               style={tw`text-[#FFFFFF] font-Manrope-SemiBold.ttf text-[16px] mt-2  `}
             >
+<<<<<<< HEAD
               {data?.data?.name}
             </Text>
             {/* <Text
@@ -123,6 +138,14 @@ export default function RiderHomeScreen() {
                 month: "long",
                 day: "numeric",
               })}
+=======
+              Hi, Abdur Rahman
+            </Text>
+            <Text
+              style={tw`mt-1 font-Manrope-Regular.ttf text-[10px] text-white `}
+            >
+              Tuesday, December 26
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
             </Text>
           </View>
           <TouchableOpacity

@@ -204,6 +204,32 @@ const Login = () => {
 
           {/* or continue with */}
 
+<<<<<<< HEAD
+=======
+          <View style={tw` mt-7 flex-row items-center justify-center gap-x-2 `}>
+            <Text style={tw`flex-1 h-[1px] bg-[#D2D2D2]`}></Text>
+
+            <Text style={tw` text-[#AEAEAE] text-sm `}>or continue with</Text>
+
+            <Text style={tw`flex-1 h-[1px] bg-[#D2D2D2]`}></Text>
+          </View>
+
+          {/* Login With Social Media Buttons */}
+
+          <View style={tw`flex-row justify-center items-center gap-x-4 mt-6`}>
+            <TouchableOpacity
+              style={tw` flex flex-row items-center justify-center gap-x-1.5 border border-[#D2D2D2]   w-full py-4 rounded-[8px] `}
+              onPress={() => {}}
+            >
+              <SvgXml xml={googleIcon} width={18} height={18} />
+
+              <Text style={tw`text-sm font-medium text-[#969696]`}>
+                Continue with Google
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
           {/* Footer Link */}
 
           <View style={tw`flex-row justify-center items-center gap-1 mt-4  `}>

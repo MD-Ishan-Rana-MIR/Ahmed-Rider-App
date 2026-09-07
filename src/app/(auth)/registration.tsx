@@ -249,7 +249,7 @@ export default function Registration() {
             {/* Footer */}
             <View style={tw`flex-row justify-center items-center mt-4`}>
               <Text style={tw`text-xs text-gray-400`}>
-                Already have an account?{" "}
+                Already have an account?
               </Text>
               <TouchableOpacity onPress={() => router.push("/(auth)/login")}>
                 <Text style={tw`text-xs font-bold text-[#5d7a12]`}>

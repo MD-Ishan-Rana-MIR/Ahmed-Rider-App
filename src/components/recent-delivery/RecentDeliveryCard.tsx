@@ -42,6 +42,7 @@ export const RecentDeliveryCard: React.FC<RecentDeliveryCardProps> = ({
               key={i}
               style={tw`flex-row items-center border border-[#EBEBEB] rounded-2xl p-3 bg-[] mb-3`}
             >
+<<<<<<< HEAD
               {/* Thumbnail Image Container */}
               <View
                 style={tw`w-19.5 h-19.5 p-0.5 bg-[#F3F3F3] rounded-xl justify-center items-center overflow-hidden mr-3`}
@@ -56,6 +57,37 @@ export const RecentDeliveryCard: React.FC<RecentDeliveryCardProps> = ({
                   resizeMode="contain"
                 />
               </View>
+=======
+              {item.title}
+            </Text>
+            <Text style={tw`text-sm font-Manrope-SemiBold.ttf text-[#F86B17]`}>
+              {item.price}
+            </Text>
+          </View>
+
+          <View style={tw`flex-row items-center gap-4 my-1.5`}>
+            <Text
+              style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+            >
+              Size:
+              <Text
+                style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+              >
+                {item.size}
+              </Text>
+            </Text>
+            <Text
+              style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+            >
+              Quantity:
+              <Text
+                style={tw`text-[10px] text-[#505050] font-Manrope-Regular.ttf `}
+              >
+                {item.quantity}
+              </Text>
+            </Text>
+          </View>
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 
               {/* Item Details */}
               <View style={tw`flex-1 justify-between py-0.5`}>

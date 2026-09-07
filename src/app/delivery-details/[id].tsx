@@ -70,11 +70,16 @@ export default function DeliveryDetailsScreen() {
     router.push("/success-message");
   };
 
+<<<<<<< HEAD
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView | null>(null);
   if (isLoading) {
     return <DeliveryDetailsSkeleton />;
   }
+=======
+  const currentStepIndex = STATUSES.indexOf(currentStatus);
+  const insets = useSafeAreaInsets();
+>>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 
   return (
     <View
