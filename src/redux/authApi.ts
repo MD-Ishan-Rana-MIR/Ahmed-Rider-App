@@ -110,7 +110,7 @@ export const authApi = baseApi.injectEndpoints({
         method : "POST",
         body : formData
       }),
-      invalidatesTags : ["Auth"]
+      invalidatesTags : ["Auth"],
     })
 
 

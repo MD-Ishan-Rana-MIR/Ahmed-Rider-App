@@ -6,7 +6,7 @@ export const deliveryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
 
     getAllDeliver: builder.query({
-      query: ({ filter = 'on_the_way', per_page = 5, page = 1 }) =>
+      query: ({ filter = 'on_the_way', per_page = 10, page = 1 }) =>
         `/rider/deliveries?filter=${filter}&per_page=${per_page}&page=${page}`,
       // Serialize query args to keep caching intact across page numbers if needed
       serializeQueryArgs: ({ endpointName, queryArgs }) => {

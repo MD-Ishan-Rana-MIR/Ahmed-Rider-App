@@ -4,34 +4,17 @@ import {
 } from "@/components/recent-delivery/RecentDeliveryCard";
 import { DeliveryCardSkeletonList } from "@/components/skeleton/DeliveryCardSkeleton";
 import BackButton from "@/components/ui/BackButton";
-<<<<<<< HEAD
 import { NotFoundState } from "@/components/ui/NotFound";
 import { useGetAllDeliverQuery } from "@/redux/deliverApi";
 import { useState } from "react";
 import { FlatList, RefreshControl, View } from "react-native";
-=======
-import { FlatList, View } from "react-native";
->>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "../../lib/tailwind";
 
-const tenOrderCards: OrderItem[] = Array.from({ length: 10 }, (_, index) => ({
-  id: `order-card-${index + 1}`,
-  title: "Classic Black Blazer",
-  size: "M",
-  quantity: 2,
-  orderNumber: "ORD-10421",
-  price: "$12.50",
-  imageUri:
-    "https://img.freepik.com/free-photo/men-s-outerwear-jacket-clothing_53876-101918.jpg",
-  shopAddress: "Street Side Road, Tripoli, Libya",
-  deliveryAddress: "1901 Thornridge Road, Tripoli, Libya",
-  distance: "3.2 km",
-}));
+
 
 const RecentDeliver = () => {
   const insets = useSafeAreaInsets();
-<<<<<<< HEAD
 
   const [page, setPage] = useState<number>(1);
 
@@ -67,8 +50,6 @@ const RecentDeliver = () => {
       setPage(1);
     }
   };
-=======
->>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
   return (
     <View
       style={[
