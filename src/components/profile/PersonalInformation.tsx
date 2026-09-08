@@ -19,11 +19,8 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-<<<<<<< HEAD
 import { errorMsg } from "../../../lib/errorMessage";
 import { successMsg } from "../../../lib/successMsg";
-=======
->>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
 import tw from "../../../lib/tailwind";
 import BackButton from "../ui/BackButton";
 import Button from "../ui/Button";
@@ -90,7 +87,6 @@ export default function PersonalInformation() {
     }
   }, [profile, reset]);
 
-  const insets = useSafeAreaInsets();
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -153,16 +149,12 @@ export default function PersonalInformation() {
         { paddingBottom: Math.max(insets.bottom, 12) },
       ]}
     >
-<<<<<<< HEAD
       {/* Header */}
       <View style={tw``}>
         <BackButton showBackButton={true} title="Personal Information" />
       </View>
 
-=======
       {/* Top Navigation Bar */}
-      <BackButton title="Personal Information" showBackButton={true} />
->>>>>>> 258797aece8b55655cc79cc9b4bd96e62e2e4fbf
       <KeyboardAwareScrollView
         enableOnAndroid
         extraScrollHeight={80}
